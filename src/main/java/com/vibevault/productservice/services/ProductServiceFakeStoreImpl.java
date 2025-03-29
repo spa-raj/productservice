@@ -2,6 +2,9 @@ package com.vibevault.productservice.services;
 
 import com.vibevault.productservice.dtos.fakestore.FakeStoreProductRequestDto;
 import com.vibevault.productservice.dtos.fakestore.FakeStoreProductResponseDto;
+import com.vibevault.productservice.exceptions.ProductNotCreatedException;
+import com.vibevault.productservice.exceptions.ProductNotDeletedException;
+import com.vibevault.productservice.exceptions.ProductNotFoundException;
 import com.vibevault.productservice.models.Product;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -9,6 +12,7 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.swing.text.html.parser.Entity;
@@ -24,159 +28,110 @@ public class ProductServiceFakeStoreImpl implements ProductService{
         this.restTemplate = restTemplate;
     }
     @Override
-    public Product createProduct(Product product) {
+    public Product createProduct(Product product) throws ProductNotCreatedException {
         String url = "https://fakestoreapi.com/products";
         FakeStoreProductRequestDto productRequestDto = new FakeStoreProductRequestDto();
-        productRequestDto.setTitle(product.getName());
-        productRequestDto.setPrice(product.getPrice());
-        productRequestDto.setDescription(product.getDescription());
-        productRequestDto.setImage(product.getImageUrl());
-        productRequestDto.setCategory(product.getCategoryName());
+        productRequestDto.fromProduct(product);
 
         FakeStoreProductResponseDto response = restTemplate.postForObject(url, productRequestDto, FakeStoreProductResponseDto.class);
-
-        return new Product(
-                (long)response.getId(),
-                response.getTitle(),
-                response.getDescription(),
-                response.getImage(),
-                response.getPrice(),
-                response.getCategory()
-        );
+        if (response == null) {
+            throw new ProductNotCreatedException("Product not created.");
+        }
+        return response.toProduct();
     }
 
     @Override
-    public Product updateProduct(@PathVariable Long productId, Product product) {
+    public Product updateProduct(@PathVariable Long productId, Product product) throws ProductNotFoundException {
         String url = "https://fakestoreapi.com/products/" + productId;
         FakeStoreProductRequestDto productRequestDto = new FakeStoreProductRequestDto();
-        // If the product is not found, the API will return a 404 error
-        // We can handle this by checking the response status code
-        // and throwing an exception if the product is not found
 
-        // Set the product details if they are provided
-        if (product.getName() != null) {
-            productRequestDto.setTitle(product.getName());
-        }
-        if (product.getDescription() != null) {
-            productRequestDto.setDescription(product.getDescription());
-        }
-        if (product.getImageUrl() != null) {
-            productRequestDto.setImage(product.getImageUrl());
-        }
-        if (product.getPrice() != null) {
-            productRequestDto.setPrice(product.getPrice());
-        }
-        if (product.getCategoryName() != null) {
-            productRequestDto.setCategory(product.getCategoryName());
-        }
+        productRequestDto.fromProduct(product);
 
 
-        ResponseEntity<FakeStoreProductResponseDto> fakeStoreProductResponseEntity= restTemplate.exchange(
-                url,
-                HttpMethod.PUT,
-                new HttpEntity<>(productRequestDto),
-                FakeStoreProductResponseDto.class);
-        FakeStoreProductResponseDto fakeStoreProductResponseDto = fakeStoreProductResponseEntity.getBody();
-
-        return new Product(
-                (long)fakeStoreProductResponseDto.getId(),
-                fakeStoreProductResponseDto.getTitle(),
-                fakeStoreProductResponseDto.getDescription(),
-                fakeStoreProductResponseDto.getImage(),
-                fakeStoreProductResponseDto.getPrice(),
-                fakeStoreProductResponseDto.getCategory()
-        );
+        FakeStoreProductResponseDto fakeStoreProductResponseDto= restTemplate.patchForObject(url, productRequestDto, FakeStoreProductResponseDto.class);
+        if (fakeStoreProductResponseDto == null) {
+            throw new ProductNotFoundException("Product with id: " + productId + " not found.");
+        }
+        return fakeStoreProductResponseDto.toProduct();
     }
 
     @Override
-    public Product getProductById(Long productId) {
+    public Product getProductById(Long productId) throws ProductNotFoundException {
         String url = "https://fakestoreapi.com/products/" + productId;
         ResponseEntity<FakeStoreProductResponseDto> response = restTemplate.getForEntity(url, FakeStoreProductResponseDto.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             FakeStoreProductResponseDto productResponseDto = response.getBody();
-            return new Product(
-                    (long)productResponseDto.getId(),
-                    productResponseDto.getTitle(),
-                    productResponseDto.getDescription(),
-                    productResponseDto.getImage(),
-                    productResponseDto.getPrice(),
-                    productResponseDto.getCategory()
-            );
+            if (productResponseDto == null) {
+                throw new ProductNotFoundException("Product with id: " + productId + " not found.");
+            }
+            return productResponseDto.toProduct();
         } else {
             // Handle the case when the product is not found
-            return null;
+            throw new ProductNotFoundException("Product with id: " + productId + " not found.");
         }
     }
 
     @Override
-    public List<Product> getAllProducts() {
+    public List<Product> getAllProducts() throws ProductNotFoundException {
         String url = "https://fakestoreapi.com/products";
         ResponseEntity<FakeStoreProductResponseDto[]> response = restTemplate.getForEntity(url, FakeStoreProductResponseDto[].class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             FakeStoreProductResponseDto[] productResponseDtos = response.getBody();
-            return Stream.of(Objects.requireNonNull(productResponseDtos))
-                    .map(productResponseDto -> new Product(
-                            (long)productResponseDto.getId(),
-                            productResponseDto.getTitle(),
-                            productResponseDto.getDescription(),
-                            productResponseDto.getImage(),
-                            productResponseDto.getPrice(),
-                            productResponseDto.getCategory()
-                    )).toList();
+            if (productResponseDtos == null || productResponseDtos.length == 0) {
+                throw new ProductNotFoundException("No products found.");
+            }
+            return Stream.of(productResponseDtos)
+                    .map(FakeStoreProductResponseDto::toProduct)
+                    .toList();
         } else {
             // Handle the case when the products are not found
-            return List.of();
+            throw new ProductNotFoundException("No products found.");
         }
     }
 
     @Override
-    public Product deleteProduct(Long productId) {
+    public Product deleteProduct(Long productId) throws ProductNotFoundException, ProductNotDeletedException {
         String url = "https://fakestoreapi.com/products/" + productId;
         ResponseEntity<FakeStoreProductResponseDto> response = restTemplate.exchange(url, HttpMethod.DELETE, null, FakeStoreProductResponseDto.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             FakeStoreProductResponseDto productResponseDto = response.getBody();
-            return new Product(
-                    (long) Objects.requireNonNull(productResponseDto).getId(),
-                    productResponseDto.getTitle(),
-                    productResponseDto.getDescription(),
-                    productResponseDto.getImage(),
-                    productResponseDto.getPrice(),
-                    productResponseDto.getCategory()
-            );
+            if (productResponseDto == null) {
+                throw new ProductNotFoundException("Product with id: " + productId + " not found.");
+            }
+            return productResponseDto.toProduct();
         } else {
             // Handle the case when the product is not found
-            return null;
+            throw new ProductNotDeletedException("Product with id: " + productId + " not deleted.");
         }
     }
 
     @Override
-    public Product replaceProduct(Long productId, Product product) {
+    public Product replaceProduct(Long productId, Product product) throws ProductNotFoundException {
         String url = "https://fakestoreapi.com/products/" + productId;
         FakeStoreProductRequestDto productRequestDto = new FakeStoreProductRequestDto();
-        productRequestDto.setTitle(product.getName());
-        productRequestDto.setPrice(product.getPrice());
-        productRequestDto.setDescription(product.getDescription());
-        productRequestDto.setImage(product.getImageUrl());
-        productRequestDto.setCategory(product.getCategoryName());
-
-        ResponseEntity<FakeStoreProductResponseDto> response = restTemplate.exchange(url, HttpMethod.PUT, new HttpEntity<>(productRequestDto), FakeStoreProductResponseDto.class);
+        productRequestDto.fromProduct(product);
+        ResponseEntity<FakeStoreProductResponseDto> response;
+        try{
+            response = restTemplate.exchange(url, HttpMethod.PUT, new HttpEntity<>(productRequestDto), FakeStoreProductResponseDto.class);
+        }
+        // RestTemplateException
+        catch(RestClientException e){
+            throw new RestClientException("Error occurred while replacing the product: " + e.getMessage());
+        }
 
         if (response.getStatusCode().is2xxSuccessful()) {
             FakeStoreProductResponseDto productResponseDto = response.getBody();
-            return new Product(
-                    (long) Objects.requireNonNull(productResponseDto).getId(),
-                    productResponseDto.getTitle(),
-                    productResponseDto.getDescription(),
-                    productResponseDto.getImage(),
-                    productResponseDto.getPrice(),
-                    productResponseDto.getCategory()
-            );
+            if (productResponseDto == null) {
+                throw new ProductNotFoundException("Product with id: " + productId + " not found.");
+            }
+            return productResponseDto.toProduct();
         } else {
             // Handle the case when the product is not found
-            return null;
+            throw new ProductNotFoundException("Product with id: " + productId + " not found.");
         }
     }
+
 }
