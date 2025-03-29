@@ -27,6 +27,9 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
+        server-id: productservice
+        server-username: ${{ github.actor }}
+        server-password: ${{ secrets.Maven_workflow }}
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
