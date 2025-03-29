@@ -13,7 +13,11 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
+    
+# Grant permissions to the GITHUB_TOKEN for this workflow run
+permissions:
+  contents: write  # Needed to write the dependency graph snapshot
+  
 jobs:
   build:
 
@@ -27,9 +31,7 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
-        server-id: productservice
-        server-username: ${{ github.actor }}
-        server-password: ${{ secrets.Maven_workflow }}
+
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
