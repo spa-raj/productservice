@@ -19,7 +19,7 @@ public class CreateProductResponseDto {
         responseDto.setDescription(product.getDescription());
         responseDto.setImageUrl(product.getImageUrl());
         responseDto.setPrice(product.getPrice());
-        responseDto.setCategoryName(product.getCategoryName());
+        responseDto.setCategoryName(product.getCategory().getName());
         return responseDto;
     }
 }

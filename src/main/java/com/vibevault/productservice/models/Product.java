@@ -1,22 +1,23 @@
 package com.vibevault.productservice.models;
-
-import lombok.Data;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.*;
 
 @Data
-public class Product {
-    private Long id;
+@Entity
+@Table(name = "Products")
+@NoArgsConstructor
+@Getter
+@Setter
+@AllArgsConstructor
+public class Product extends BaseModel{
     private String name;
+    @Column(length = 1000)
     private String description;
     private String imageUrl;
     private Double price;
-    private String categoryName;
-
-    public Product(Long id, String name, String description, String imageUrl, Double price, String categoryName) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.imageUrl = imageUrl;
-        this.price = price;
-        this.categoryName = categoryName;
-    }
+    @ManyToOne
+    private Category category;
 }
