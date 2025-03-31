@@ -93,8 +93,8 @@ public class ProductServiceDBImpl implements ProductService{
             product.setDeleted(true);
             product=productRepository.save(product);
         }
-        catch(Exception e){
-            throw new ProductNotDeletedException("Product with id " + productId + " not deleted");
+        catch(DataAccessException e){
+            throw new ProductNotDeletedException("Product with id " + productId + " not deleted due to database error");
         }
         return product;
     }
