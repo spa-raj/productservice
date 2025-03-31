@@ -1,6 +1,7 @@
 package com.vibevault.productservice.services;
 
 import com.vibevault.productservice.exceptions.ProductNotCreatedException;
+import com.vibevault.productservice.exceptions.ProductNotDeletedException;
 import com.vibevault.productservice.exceptions.ProductNotFoundException;
 import com.vibevault.productservice.models.Category;
 import com.vibevault.productservice.models.Product;
@@ -32,7 +33,7 @@ public class ProductServiceDBImpl implements ProductService{
     @Override
     public Product updateProduct(Long productId, Product product) throws ProductNotFoundException {
         Optional<Product> optionalProduct = productRepository.findById(productId);
-        if(optionalProduct.isEmpty()){
+        if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
             throw new ProductNotFoundException("Product with id " + productId + " not found");
         }
         Product existingProduct = optionalProduct.get();
@@ -67,8 +68,12 @@ public class ProductServiceDBImpl implements ProductService{
     }
 
     @Override
-    public Product getProductById(Long productId) {
-        return null;
+    public Product getProductById(Long productId) throws ProductNotFoundException {
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+        if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
+            throw new ProductNotFoundException("Product with id " + productId + " not found");
+        }
+        return optionalProduct.get();
     }
 
     @Override
@@ -77,12 +82,35 @@ public class ProductServiceDBImpl implements ProductService{
     }
 
     @Override
-    public Product deleteProduct(Long productId) {
-        return null;
+    public Product deleteProduct(Long productId) throws ProductNotFoundException, ProductNotDeletedException {
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+        if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
+            throw new ProductNotFoundException("Product with id " + productId + " not found");
+        }
+        Product product = optionalProduct.get();
+        try{
+            product.setDeleted(true);
+            product=productRepository.save(product);
+        }
+        catch(Exception e){
+            throw new ProductNotDeletedException("Product with id " + productId + " not deleted");
+        }
+        return product;
     }
 
     @Override
-    public Product replaceProduct(Long productId, Product product) {
-        return null;
+    public Product replaceProduct(Long productId, Product product) throws ProductNotFoundException {
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+        if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
+            throw new ProductNotFoundException("Product with id " + productId + " not found");
+        }
+        Product existingProduct = optionalProduct.get();
+        existingProduct.setName(product.getName());
+        existingProduct.setDescription(product.getDescription());
+        existingProduct.setPrice(product.getPrice());
+        Category category = getSavedCategory(product);
+        existingProduct.setCategory(category);
+        existingProduct.setImageUrl(product.getImageUrl());
+        return productRepository.save(existingProduct);
     }
 }

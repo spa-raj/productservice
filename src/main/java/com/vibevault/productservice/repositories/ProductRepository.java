@@ -3,6 +3,7 @@ package com.vibevault.productservice.repositories;
 import com.vibevault.productservice.models.Product;
 import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     void deleteAll(Iterable<? extends Product> entities);
 
     @Override
+    @Query("SELECT p FROM Product p WHERE p.isDeleted = false")
     List<Product> findAll();
 
     @Override
