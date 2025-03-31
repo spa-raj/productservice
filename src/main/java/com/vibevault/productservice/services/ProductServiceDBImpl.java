@@ -33,6 +33,7 @@ public class ProductServiceDBImpl implements ProductService{
     @Override
     public Product updateProduct(Long productId, Product product) throws ProductNotFoundException {
         Optional<Product> optionalProduct = productRepository.findById(productId);
+      
         if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
             throw new ProductNotFoundException("Product with id " + productId + " not found");
         }
