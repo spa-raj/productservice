@@ -8,6 +8,7 @@ import com.vibevault.productservice.models.Product;
 import com.vibevault.productservice.repositories.CategoryRepository;
 import com.vibevault.productservice.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
