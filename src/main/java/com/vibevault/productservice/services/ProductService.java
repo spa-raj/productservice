@@ -4,6 +4,7 @@ import com.vibevault.productservice.exceptions.ProductNotCreatedException;
 import com.vibevault.productservice.exceptions.ProductNotDeletedException;
 import com.vibevault.productservice.exceptions.ProductNotFoundException;
 import com.vibevault.productservice.models.Product;
+import org.springframework.dao.DataAccessException;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ public interface ProductService {
 
     List<Product> getAllProducts() throws ProductNotFoundException;
 
-    Product deleteProduct(Long productId) throws ProductNotFoundException, ProductNotDeletedException;
+    Product deleteProduct(Long productId) throws ProductNotFoundException, ProductNotDeletedException, DataAccessException;
 
     Product replaceProduct(Long productId, Product product) throws ProductNotFoundException;
 }

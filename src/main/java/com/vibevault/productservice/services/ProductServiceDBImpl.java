@@ -84,7 +84,7 @@ public class ProductServiceDBImpl implements ProductService{
     }
 
     @Override
-    public Product deleteProduct(Long productId) throws ProductNotFoundException, ProductNotDeletedException {
+    public Product deleteProduct(Long productId) throws ProductNotFoundException, ProductNotDeletedException, DataAccessException {
         Optional<Product> optionalProduct = productRepository.findById(productId);
         if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
             throw new ProductNotFoundException("Product with id " + productId + " not found");
@@ -95,7 +95,8 @@ public class ProductServiceDBImpl implements ProductService{
             product=productRepository.save(product);
         }
         catch(DataAccessException e){
-            throw new ProductNotDeletedException("Product with id " + productId + " not deleted due to database error");
+            throw new ProductNotDeletedException("Product with id " + productId + " not deleted due to database error. "+e.getMessage(),e);
+
         }
         return product;
     }
