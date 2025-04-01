@@ -1,8 +1,8 @@
 package com.vibevault.productservice.services;
 
-import com.vibevault.productservice.exceptions.ProductNotCreatedException;
-import com.vibevault.productservice.exceptions.ProductNotDeletedException;
-import com.vibevault.productservice.exceptions.ProductNotFoundException;
+import com.vibevault.productservice.exceptions.products.ProductNotCreatedException;
+import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
+import com.vibevault.productservice.exceptions.products.ProductNotFoundException;
 import com.vibevault.productservice.models.Category;
 import com.vibevault.productservice.models.Product;
 import com.vibevault.productservice.repositories.CategoryRepository;

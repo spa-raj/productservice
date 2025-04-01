@@ -2,22 +2,19 @@ package com.vibevault.productservice.services;
 
 import com.vibevault.productservice.dtos.fakestore.FakeStoreProductRequestDto;
 import com.vibevault.productservice.dtos.fakestore.FakeStoreProductResponseDto;
-import com.vibevault.productservice.exceptions.ProductNotCreatedException;
-import com.vibevault.productservice.exceptions.ProductNotDeletedException;
-import com.vibevault.productservice.exceptions.ProductNotFoundException;
+import com.vibevault.productservice.exceptions.products.ProductNotCreatedException;
+import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
+import com.vibevault.productservice.exceptions.products.ProductNotFoundException;
 import com.vibevault.productservice.models.Product;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 @Service("productServiceFakeStoreImpl")
