@@ -2,9 +2,10 @@ package com.vibevault.productservice.advices;
 
 import com.vibevault.productservice.constants.ErrorCode;
 import com.vibevault.productservice.dtos.exceptions.ExceptionDto;
-import com.vibevault.productservice.exceptions.ProductNotCreatedException;
-import com.vibevault.productservice.exceptions.ProductNotDeletedException;
-import com.vibevault.productservice.exceptions.ProductNotFoundException;
+import com.vibevault.productservice.exceptions.categories.CategoryNotFoundException;
+import com.vibevault.productservice.exceptions.products.ProductNotCreatedException;
+import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
+import com.vibevault.productservice.exceptions.products.ProductNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -66,5 +67,13 @@ public class ExceptionAdvices {
                 productNotDeletedException.getMessage(),
                 request.getRequestURI(),
                 ErrorCode.PRODUCT_DELETION_FAILED.toString()),HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(CategoryNotFoundException.class)
+    ResponseEntity<ExceptionDto> handleCategoryNotFoundException(CategoryNotFoundException categoryNotFoundException,
+                                                                 HttpServletRequest request){
+        return new ResponseEntity<>(new ExceptionDto(HttpStatus.NOT_FOUND,
+                categoryNotFoundException.getMessage(),
+                request.getRequestURI(),
+                ErrorCode.CATEGORY_NOT_FOUND.toString()),HttpStatus.NOT_FOUND);
     }
 }

@@ -1,9 +1,9 @@
 package com.vibevault.productservice.controllers;
 
 import com.vibevault.productservice.dtos.product.*;
-import com.vibevault.productservice.exceptions.ProductNotCreatedException;
-import com.vibevault.productservice.exceptions.ProductNotDeletedException;
-import com.vibevault.productservice.exceptions.ProductNotFoundException;
+import com.vibevault.productservice.exceptions.products.ProductNotCreatedException;
+import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
+import com.vibevault.productservice.exceptions.products.ProductNotFoundException;
 import com.vibevault.productservice.models.Product;
 import com.vibevault.productservice.services.ProductService;
 import org.springframework.web.bind.annotation.*;
