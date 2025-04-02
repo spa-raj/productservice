@@ -1,20 +1,40 @@
 package com.vibevault.productservice.models;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.format.annotation.NumberFormat;
 
-@Data
 @Entity
-@Table(name = "Products")
+@Table(name = "products")
 @NoArgsConstructor
 @Getter
 @Setter
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@ToString(callSuper = false)
 public class Product extends BaseModel{
+    @Column(nullable = false, unique = true)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private String name;
-    @Column(length = 1000)
+
+    @Lob
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private String description;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Column(length = 1000)
     private String imageUrl;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Column(nullable = false)
+    @NumberFormat(style = NumberFormat.Style.CURRENCY)
     private Double price;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     private Category category;
 }
