@@ -60,11 +60,11 @@ public class ProductServiceDBImpl implements ProductService{
 
     private Category getSavedCategory(Product product) {
         Category category = product.getCategory();
-        Optional<Category> categoryOptional = categoryRepository.findByName(product.getCategory().getName());
-        if (categoryOptional.isPresent()) {
-            category = categoryOptional.get();
-        } else {
+        Optional<Category> categoryOptional = categoryRepository.findByName(category.getName());
+        if (categoryOptional.isEmpty()) {
             category = categoryRepository.save(category);
+        } else {
+            category = categoryOptional.get();
         }
         return category;
     }
