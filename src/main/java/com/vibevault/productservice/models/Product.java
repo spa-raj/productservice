@@ -30,8 +30,8 @@ public class Product extends BaseModel{
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @Column(nullable = false)
-    @NumberFormat(style = NumberFormat.Style.CURRENCY)
-    private Double price;
+    @Embedded
+    private Price price;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
