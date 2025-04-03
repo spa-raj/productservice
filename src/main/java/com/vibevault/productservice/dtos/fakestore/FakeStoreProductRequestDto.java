@@ -25,7 +25,7 @@ public class FakeStoreProductRequestDto {
         this.title = product.getName();
         this.description = product.getDescription();
         this.image = product.getImageUrl();
-        this.price = product.getPrice();
+        this.price = product.getPrice().getPrice();
         this.category = product.getCategory().getName();
         return this;
     }

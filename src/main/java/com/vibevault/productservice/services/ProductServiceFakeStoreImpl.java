@@ -38,7 +38,7 @@ public class ProductServiceFakeStoreImpl implements ProductService{
     }
 
     @Override
-    public Product updateProduct(@PathVariable Long productId, Product product) throws ProductNotFoundException {
+    public Product updateProduct(@PathVariable String productId, Product product) throws ProductNotFoundException {
         String url = "https://fakestoreapi.com/products/" + productId;
         FakeStoreProductRequestDto productRequestDto = new FakeStoreProductRequestDto();
 
@@ -53,7 +53,7 @@ public class ProductServiceFakeStoreImpl implements ProductService{
     }
 
     @Override
-    public Product getProductById(Long productId) throws ProductNotFoundException {
+    public Product getProductById(String productId) throws ProductNotFoundException {
         String url = "https://fakestoreapi.com/products/" + productId;
         ResponseEntity<FakeStoreProductResponseDto> response = restTemplate.getForEntity(url, FakeStoreProductResponseDto.class);
 
@@ -89,7 +89,7 @@ public class ProductServiceFakeStoreImpl implements ProductService{
     }
 
     @Override
-    public Product deleteProduct(Long productId) throws ProductNotFoundException, ProductNotDeletedException {
+    public Product deleteProduct(String productId) throws ProductNotFoundException, ProductNotDeletedException {
         String url = "https://fakestoreapi.com/products/" + productId;
         ResponseEntity<FakeStoreProductResponseDto> response = restTemplate.exchange(url, HttpMethod.DELETE, null, FakeStoreProductResponseDto.class);
 
@@ -106,7 +106,7 @@ public class ProductServiceFakeStoreImpl implements ProductService{
     }
 
     @Override
-    public Product replaceProduct(Long productId, Product product) throws ProductNotFoundException {
+    public Product replaceProduct(String productId, Product product) throws ProductNotFoundException {
         String url = "https://fakestoreapi.com/products/" + productId;
         FakeStoreProductRequestDto productRequestDto = new FakeStoreProductRequestDto();
         productRequestDto.fromProduct(product);
