@@ -40,12 +40,12 @@ public class CategoryController {
         return GetCategoryResponseDto.fromCategory(category);
     }
     @GetMapping("/products")
-    public List<GetProductListResponseDto> getProductsList(@RequestBody GetProductListRequestDto getProductListRequestDto) throws CategoryNotFoundException {
+    public List<GetProductListResponseDto> getProductsListByCategoryUUIDs(@RequestBody GetProductListRequestDto getProductListRequestDto) throws CategoryNotFoundException {
         List<Product> products= categoryService.getProductsList(getProductListRequestDto.getCategoryUuids());
         return GetProductListResponseDto.fromProducts(products);
     }
     @GetMapping("/products/{category}")
-    public List<GetProductListResponseDto> getProductsListByCategory(@PathVariable("category") String category) throws CategoryNotFoundException {
+    public List<GetProductListResponseDto> getProductsListByCategoryName(@PathVariable("category") String category) throws CategoryNotFoundException {
         List<Product> products= categoryService.getProductsByCategory(category);
         return GetProductListResponseDto.fromProducts(products);
     }
