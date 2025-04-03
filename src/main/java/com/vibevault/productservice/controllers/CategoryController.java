@@ -1,11 +1,10 @@
 package com.vibevault.productservice.controllers;
 
-import com.vibevault.productservice.dtos.categories.CreateCategoryRequestDto;
-import com.vibevault.productservice.dtos.categories.CreateCategoryResponseDto;
-import com.vibevault.productservice.dtos.categories.GetCategoryResponseDto;
+import com.vibevault.productservice.dtos.categories.*;
 import com.vibevault.productservice.exceptions.categories.CategoryNotCreatedException;
 import com.vibevault.productservice.exceptions.categories.CategoryNotFoundException;
 import com.vibevault.productservice.models.Category;
+import com.vibevault.productservice.models.Product;
 import com.vibevault.productservice.services.CategoryService;
 import com.vibevault.productservice.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,12 +39,16 @@ public class CategoryController {
         Category category = categoryService.getCategoryByName(categoryName);
         return GetCategoryResponseDto.fromCategory(category);
     }
-//    @GetMapping("/products/{categoryId}")
-//    public List<GetCategoryResponseDto> getProductsByCategory(@PathVariable("categoryId") Long categoryId) throws CategoryNotFoundException {
-//        Category category = categoryService.getCategoryById(categoryId);
-//        List<Product> products=
-//        return GetCategoryResponseDto.fromCategories(;
-//    }
+    @GetMapping("/products")
+    public List<GetProductListResponseDto> getProductsList(@RequestBody GetProductListRequestDto getProductListRequestDto) throws CategoryNotFoundException {
+        List<Product> products= categoryService.getProductsList(getProductListRequestDto.getCategoryUuids());
+        return GetProductListResponseDto.fromProducts(products);
+    }
+    @GetMapping("/products/{category}")
+    public List<GetProductListResponseDto> getProductsListByCategory(@PathVariable("category") String category) throws CategoryNotFoundException {
+        List<Product> products= categoryService.getProductsByCategory(category);
+        return GetProductListResponseDto.fromProducts(products);
+    }
     @PostMapping("")
     public CreateCategoryResponseDto createCategory(@RequestBody CreateCategoryRequestDto createCategoryRequestDto) throws CategoryNotCreatedException {
         Category category = categoryService.createCategory(createCategoryRequestDto.toCategory());

@@ -4,6 +4,7 @@ import com.vibevault.productservice.exceptions.categories.CategoryAlreadyExistsE
 import com.vibevault.productservice.exceptions.categories.CategoryNotCreatedException;
 import com.vibevault.productservice.exceptions.categories.CategoryNotFoundException;
 import com.vibevault.productservice.models.Category;
+import com.vibevault.productservice.models.Product;
 import com.vibevault.productservice.repositories.CategoryRepository;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +54,28 @@ public class CategoryServiceDBImpl implements CategoryService{
             return categoryOptional.get();
         } else {
             throw new CategoryNotFoundException("Category with name " + categoryName + " not found");
+        }
+    }
+
+    @Override
+    public List<Product> getProductsList(List<String> categoryUuids) throws CategoryNotFoundException {
+        List<UUID> uuids = categoryUuids.stream().map(UUID::fromString).toList();
+        List<Category> categories = categoryRepository.findAllByIdIn(uuids);
+        if (categories.isEmpty()) {
+            throw new CategoryNotFoundException("No categories found for the provided UUIDs");
+        }
+        return categories.stream()
+                .flatMap(category -> category.getProducts().stream())
+                .toList();
+    }
+
+    @Override
+    public List<Product> getProductsByCategory(String category) {
+        Optional<Category> categoryOptional = categoryRepository.findByName(category);
+        if (categoryOptional.isPresent()) {
+            return categoryOptional.get().getProducts();
+        } else {
+            throw new CategoryNotFoundException("Category with name " + category + " not found");
         }
     }
 }

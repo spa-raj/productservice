@@ -4,6 +4,7 @@ import com.vibevault.productservice.exceptions.categories.CategoryAlreadyExistsE
 import com.vibevault.productservice.exceptions.categories.CategoryNotCreatedException;
 import com.vibevault.productservice.exceptions.categories.CategoryNotFoundException;
 import com.vibevault.productservice.models.Category;
+import com.vibevault.productservice.models.Product;
 
 import java.util.List;
 
@@ -15,4 +16,8 @@ public interface CategoryService {
     Category createCategory(Category category) throws CategoryNotCreatedException, CategoryAlreadyExistsException;
 
     Category getCategoryByName(String categoryName) throws CategoryNotFoundException;
+
+    List<Product> getProductsList(List<String> categoryUuids) throws CategoryNotFoundException;
+
+    List<Product> getProductsByCategory(String category);
 }
