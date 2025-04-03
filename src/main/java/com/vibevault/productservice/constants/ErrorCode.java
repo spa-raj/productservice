@@ -6,7 +6,9 @@ public enum ErrorCode {
     EXTERNAL_API_ERROR,
     DATABASE_ERROR,
     PRODUCT_DELETION_FAILED,
-    CATEGORY_NOT_FOUND;
+    CATEGORY_NOT_FOUND,
+    CATEGORY_CREATION_FAILED,
+    CATEGORY_ALREADY_EXISTS;
 
     @Override
     public String toString() {

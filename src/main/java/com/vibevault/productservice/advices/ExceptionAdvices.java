@@ -2,6 +2,8 @@ package com.vibevault.productservice.advices;
 
 import com.vibevault.productservice.constants.ErrorCode;
 import com.vibevault.productservice.dtos.exceptions.ExceptionDto;
+import com.vibevault.productservice.exceptions.categories.CategoryAlreadyExistsException;
+import com.vibevault.productservice.exceptions.categories.CategoryNotCreatedException;
 import com.vibevault.productservice.exceptions.categories.CategoryNotFoundException;
 import com.vibevault.productservice.exceptions.products.ProductNotCreatedException;
 import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
@@ -75,5 +77,23 @@ public class ExceptionAdvices {
                 categoryNotFoundException.getMessage(),
                 request.getRequestURI(),
                 ErrorCode.CATEGORY_NOT_FOUND.toString()),HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(CategoryNotCreatedException.class)
+    ResponseEntity<ExceptionDto> handleCategoryNotCreatedException(CategoryNotCreatedException categoryNotCreatedException,
+                                                                    HttpServletRequest request){
+        return new ResponseEntity<>(new ExceptionDto(HttpStatus.INTERNAL_SERVER_ERROR,
+                categoryNotCreatedException.getMessage(),
+                request.getRequestURI(),
+                ErrorCode.CATEGORY_CREATION_FAILED.toString()),HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(CategoryAlreadyExistsException.class)
+    ResponseEntity<ExceptionDto> handleCategoryAlreadyExistsException(CategoryAlreadyExistsException categoryAlreadyExistsException,
+                                                                 HttpServletRequest request){
+        return new ResponseEntity<>(new ExceptionDto(HttpStatus.CONFLICT,
+                categoryAlreadyExistsException.getMessage(),
+                request.getRequestURI(),
+                ErrorCode.CATEGORY_ALREADY_EXISTS.toString()),HttpStatus.CONFLICT);
     }
 }
