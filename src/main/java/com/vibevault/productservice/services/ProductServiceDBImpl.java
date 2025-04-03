@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service("productServiceDBImpl")
 public class ProductServiceDBImpl implements ProductService{
@@ -32,8 +33,8 @@ public class ProductServiceDBImpl implements ProductService{
     }
 
     @Override
-    public Product updateProduct(Long productId, Product product) throws ProductNotFoundException {
-        Optional<Product> optionalProduct = productRepository.findById(productId);
+    public Product updateProduct(String productId, Product product) throws ProductNotFoundException {
+        Optional<Product> optionalProduct = productRepository.findById(UUID.fromString(productId));
       
         if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
             throw new ProductNotFoundException("Product with id " + productId + " not found");
@@ -70,8 +71,8 @@ public class ProductServiceDBImpl implements ProductService{
     }
 
     @Override
-    public Product getProductById(Long productId) throws ProductNotFoundException {
-        Optional<Product> optionalProduct = productRepository.findById(productId);
+    public Product getProductById(String productId) throws ProductNotFoundException {
+        Optional<Product> optionalProduct = productRepository.findById(UUID.fromString(productId));
         if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
             throw new ProductNotFoundException("Product with id " + productId + " not found");
         }
@@ -84,8 +85,8 @@ public class ProductServiceDBImpl implements ProductService{
     }
 
     @Override
-    public Product deleteProduct(Long productId) throws ProductNotFoundException, ProductNotDeletedException, DataAccessException {
-        Optional<Product> optionalProduct = productRepository.findById(productId);
+    public Product deleteProduct(String productId) throws ProductNotFoundException, ProductNotDeletedException, DataAccessException {
+        Optional<Product> optionalProduct = productRepository.findById(UUID.fromString(productId));
         if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
             throw new ProductNotFoundException("Product with id " + productId + " not found");
         }
@@ -102,8 +103,8 @@ public class ProductServiceDBImpl implements ProductService{
     }
 
     @Override
-    public Product replaceProduct(Long productId, Product product) throws ProductNotFoundException {
-        Optional<Product> optionalProduct = productRepository.findById(productId);
+    public Product replaceProduct(String productId, Product product) throws ProductNotFoundException {
+        Optional<Product> optionalProduct = productRepository.findById(UUID.fromString(productId));
         if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
             throw new ProductNotFoundException("Product with id " + productId + " not found");
         }

@@ -25,12 +25,12 @@ public class ProductController {
         return CreateProductResponseDto.fromProduct(product);
     }
     @PatchMapping("/{productId}")
-    public UpdateProductResponseDto updateProduct(@PathVariable("productId") Long productId, @RequestBody UpdateProductRequestDto updateProductRequestDto) throws ProductNotFoundException {
+    public UpdateProductResponseDto updateProduct(@PathVariable("productId") String productId, @RequestBody UpdateProductRequestDto updateProductRequestDto) throws ProductNotFoundException {
         Product product = productService.updateProduct(productId, updateProductRequestDto.toProduct());
         return UpdateProductResponseDto.fromProduct(product);
     }
     @GetMapping("/{productId}")
-    public GetProductResponseDto getSingleProduct(@PathVariable("productId") Long productId) throws ProductNotFoundException {
+    public GetProductResponseDto getProductById(@PathVariable("productId") String productId) throws ProductNotFoundException {
         Product product=productService.getProductById(productId);
         return GetProductResponseDto.fromProduct(product);
     }
@@ -40,13 +40,13 @@ public class ProductController {
         return GetProductResponseDto.fromProducts(products);
     }
     @DeleteMapping("/{productId}")
-    public DeleteProductResponseDto deleteProduct(@PathVariable("productId") Long productId) throws ProductNotFoundException, ProductNotDeletedException {
+    public DeleteProductResponseDto deleteProduct(@PathVariable("productId") String productId) throws ProductNotFoundException, ProductNotDeletedException {
         Product product=productService.deleteProduct(productId);
         return DeleteProductResponseDto.fromProduct(product);
     }
 
     @PutMapping("/{productId}")
-    public ReplaceProductResponseDto replaceProduct(@PathVariable("productId") Long productId, @RequestBody ReplaceProductRequestDto replaceProductRequestDto) throws ProductNotFoundException {
+    public ReplaceProductResponseDto replaceProduct(@PathVariable("productId") String productId, @RequestBody ReplaceProductRequestDto replaceProductRequestDto) throws ProductNotFoundException {
         Product product = productService.replaceProduct(productId, replaceProductRequestDto.toProduct());
         return ReplaceProductResponseDto.fromProduct(product);
 
