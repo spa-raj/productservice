@@ -18,7 +18,8 @@ public class Price{
     @NumberFormat(pattern = "#,###,###,###.##", style = NumberFormat.Style.CURRENCY)
     private Double price;
 
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated
+    @Column(nullable = false)
     private Currency currency;
 
     @Override
