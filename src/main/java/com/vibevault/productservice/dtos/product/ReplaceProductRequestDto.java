@@ -1,6 +1,7 @@
 package com.vibevault.productservice.dtos.product;
 
 import com.vibevault.productservice.models.Category;
+import com.vibevault.productservice.models.Currency;
 import com.vibevault.productservice.models.Price;
 import com.vibevault.productservice.models.Product;
 import lombok.Data;
@@ -14,7 +15,8 @@ public class ReplaceProductRequestDto {
     private String name;
     private String description;
     private String imageUrl;
-    private Price price;
+    private Double price;
+    private String currency;
     private String categoryName;
     public Product toProduct() {
         Category category = new Category();
@@ -25,7 +27,10 @@ public class ReplaceProductRequestDto {
         product.setDescription(this.description);
         product.setImageUrl(this.imageUrl);
 
-        product.setPrice(this.price);
+        Price price = new Price();
+        price.setPrice(this.price);
+        price.setCurrency(Currency.valueOf(this.currency));
+        product.setPrice(price);
         product.setLastModifiedAt(new Date());
         product.setCategory(category);
         return product;

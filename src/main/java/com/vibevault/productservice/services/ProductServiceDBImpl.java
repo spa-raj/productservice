@@ -4,6 +4,7 @@ import com.vibevault.productservice.exceptions.products.ProductNotCreatedExcepti
 import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
 import com.vibevault.productservice.exceptions.products.ProductNotFoundException;
 import com.vibevault.productservice.models.Category;
+import com.vibevault.productservice.models.Price;
 import com.vibevault.productservice.models.Product;
 import com.vibevault.productservice.repositories.CategoryRepository;
 import com.vibevault.productservice.repositories.ProductRepository;
@@ -43,24 +44,53 @@ public class ProductServiceDBImpl implements ProductService{
         if(product.getName() != null) {
             existingProduct.setName(product.getName());
         }
+        else{
+            existingProduct.setName(existingProduct.getName());
+        }
+
         if(product.getDescription() != null) {
             existingProduct.setDescription(product.getDescription());
         }
-        if(product.getPrice() != null) {
-            existingProduct.setPrice(product.getPrice());
+        else{
+            existingProduct.setDescription(existingProduct.getDescription());
         }
-        if(product.getCategory() != null) {
+
+        if(product.getPrice() != null) {
+            Price price = product.getPrice();
+            if(price.getPrice()!= null){
+                existingProduct.getPrice().setPrice(price.getPrice());
+            }
+            if(price.getCurrency() != null){
+                existingProduct.getPrice().setCurrency(price.getCurrency());
+            }
+        }
+        else{
+            existingProduct.setPrice(existingProduct.getPrice());
+        }
+
+        // Fixed category check condition
+        if(product.getCategory() != null && product.getCategory().getName() != null) {
             Category category = getSavedCategory(product);
             existingProduct.setCategory(category);
         }
+
         if(product.getImageUrl() != null) {
             existingProduct.setImageUrl(product.getImageUrl());
         }
+        else{
+            existingProduct.setImageUrl(existingProduct.getImageUrl());
+        }
+
         return productRepository.save(existingProduct);
     }
 
     private Category getSavedCategory(Product product) {
         Category category = product.getCategory();
+        // Added null check for safety
+        if (category == null || category.getName() == null) {
+            return null;
+        }
+
         Optional<Category> categoryOptional = categoryRepository.findByName(category.getName());
         if (categoryOptional.isEmpty()) {
             category = categoryRepository.save(category);

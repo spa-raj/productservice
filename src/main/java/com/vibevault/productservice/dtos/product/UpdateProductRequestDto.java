@@ -1,5 +1,6 @@
 package com.vibevault.productservice.dtos.product;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vibevault.productservice.models.Category;
 import com.vibevault.productservice.models.Currency;
 import com.vibevault.productservice.models.Price;
@@ -17,12 +18,10 @@ public class UpdateProductRequestDto {
     private String imageUrl;
     private Double price;
     private Currency currency;
+    @JsonProperty(required = false)
     private String categoryName;
 
     public Product toProduct() {
-        Category category = new Category();
-        category.setName(this.categoryName);
-
         Product product = new Product();
         product.setId(UUID.fromString(this.id));
         product.setName(this.name);
@@ -34,7 +33,14 @@ public class UpdateProductRequestDto {
         price.setCurrency(this.currency);
         product.setPrice(price);
         product.setLastModifiedAt(new Date());
-        product.setCategory(category);
+        
+        // Only set category if categoryName is not null
+        if (this.categoryName != null && !this.categoryName.isEmpty()) {
+            Category category = new Category();
+            category.setName(this.categoryName);
+            product.setCategory(category);
+        }
+        
         return product;
     }
 }
