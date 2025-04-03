@@ -87,6 +87,7 @@ public class ProductServiceDBImpl implements ProductService{
     @Override
     public Product deleteProduct(String productId) throws ProductNotFoundException, ProductNotDeletedException, DataAccessException {
         Optional<Product> optionalProduct = productRepository.findById(UUID.fromString(productId));
+
         if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
             throw new ProductNotFoundException("Product with id " + productId + " not found");
         }
