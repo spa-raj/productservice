@@ -41,19 +41,16 @@ public class ProductServiceDBImpl implements ProductService{
             throw new ProductNotFoundException("Product with id " + productId + " not found");
         }
         Product existingProduct = optionalProduct.get();
+
         if(product.getName() != null) {
             existingProduct.setName(product.getName());
         }
-        else{
-            existingProduct.setName(existingProduct.getName());
-        }
+
 
         if(product.getDescription() != null) {
             existingProduct.setDescription(product.getDescription());
         }
-        else{
-            existingProduct.setDescription(existingProduct.getDescription());
-        }
+
 
         if(product.getPrice() != null) {
             Price price = product.getPrice();
@@ -64,9 +61,6 @@ public class ProductServiceDBImpl implements ProductService{
                 existingProduct.getPrice().setCurrency(price.getCurrency());
             }
         }
-        else{
-            existingProduct.setPrice(existingProduct.getPrice());
-        }
 
         // Fixed category check condition
         if(product.getCategory() != null && product.getCategory().getName() != null) {
@@ -76,9 +70,6 @@ public class ProductServiceDBImpl implements ProductService{
 
         if(product.getImageUrl() != null) {
             existingProduct.setImageUrl(product.getImageUrl());
-        }
-        else{
-            existingProduct.setImageUrl(existingProduct.getImageUrl());
         }
 
         return productRepository.save(existingProduct);
