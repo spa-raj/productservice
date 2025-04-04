@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,10 +43,13 @@ public class ProductControllerTest {
     @Captor
     private ArgumentCaptor<String> idCaptor;
 
+    private List<Product> products;
+    private List<Category> categories;
     @BeforeEach
     public void setup() {
         // This method is called before each test
         // You can initialize common objects or mock behaviors here if needed
+        initiaLizeCategories();
         initiaLizeProducts();
     }
     private void initiaLizeProducts() {
@@ -57,9 +61,17 @@ public class ProductControllerTest {
         product.setDescription("Test Description");
         product.setImageUrl("http://test.com/image.jpg");
         product.setPrice(new Price(99.99, Currency.USD));
+        product.setCategory(categories.get(0));
+
+        products = List.of(product);
+    }
+    private void initiaLizeCategories() {
         Category category = new Category();
+        category.setId(UUID.randomUUID());
         category.setName("Test Category");
-        product.setCategory(category);
+        category.setDescription("Test Category Description");
+
+        categories = List.of(category);
     }
 
     @Test
@@ -74,10 +86,7 @@ public class ProductControllerTest {
         requestDto.setCurrency(Currency.USD);
         requestDto.setCategoryName("Test Category");
 
-        Product product = requestDto.toProduct();
-        UUID id = UUID.randomUUID();
-        product.setId(id);
-
+        Product product = products.getFirst();
         when(productService.createProduct(any(Product.class))).thenReturn(product);
 
 
@@ -86,13 +95,13 @@ public class ProductControllerTest {
 
         // Assert
         assertNotNull(responseDto);
-        assertEquals(id.toString(), responseDto.getId());
-        assertEquals("Test Product", responseDto.getName());
-        assertEquals("Test Description", responseDto.getDescription());
-        assertEquals("http://test.com/image.jpg", responseDto.getImageUrl());
-        assertEquals("Test Category", responseDto.getCategoryName());
-        assertEquals(99.99, responseDto.getPrice().getPrice());
-        assertEquals(Currency.USD, responseDto.getPrice().getCurrency());
+        assertEquals(product.getId().toString(), responseDto.getId());
+        assertEquals(product.getName(), responseDto.getName());
+        assertEquals(product.getDescription(), responseDto.getDescription());
+        assertEquals(product.getImageUrl(), responseDto.getImageUrl());
+        assertEquals(product.getCategory().getName(), responseDto.getCategoryName());
+        assertEquals(product.getPrice().getPrice(), responseDto.getPrice().getPrice());
+        assertEquals(product.getPrice().getCurrency(), responseDto.getPrice().getCurrency());
 
         verify(productService, times(1)).createProduct(any(Product.class));
     }
@@ -101,34 +110,24 @@ public class ProductControllerTest {
     @Test
     public void test_get_product_success_When_Valid_Product_Id_Is_Passed_Returns_Product() throws ProductNotFoundException {
         // Arrange
-        String productId = UUID.randomUUID().toString();
-        Product product = new Product();
-        product.setId(UUID.fromString(productId));
-        product.setName("Test Product");
-        product.setDescription("Test Description");
-        product.setImageUrl("http://test.com/image.jpg");
-        product.setPrice(new Price(99.99, Currency.USD));
-        Category category = new Category();
-        category.setName("Test Category");
-        product.setCategory(category);
+        Product product = products.getFirst();
 
         when(productService.getProductById(anyString())).thenReturn(product);
 
         // Act
-        GetProductResponseDto responseDto = productController.getProductById(productId);
+        GetProductResponseDto responseDto = productController.getProductById(product.getId().toString());
 
         // Assert
         assertNotNull(responseDto);
-        assertEquals(productId, responseDto.getId());
-        assertEquals("Test Product", responseDto.getName());
-        assertEquals("Test Description", responseDto.getDescription());
-        assertEquals("http://test.com/image.jpg", responseDto.getImageUrl());
-        assertEquals("Test Category", responseDto.getCategoryName());
-        assertEquals(99.99, responseDto.getPrice().getPrice());
-        assertEquals(Currency.USD, responseDto.getPrice().getCurrency());
+        assertEquals(product.getName(), responseDto.getName());
+        assertEquals(product.getDescription(), responseDto.getDescription());
+        assertEquals(product.getImageUrl(), responseDto.getImageUrl());
+        assertEquals(product.getCategory().getName(), responseDto.getCategoryName());
+        assertEquals(product.getPrice().getPrice(), responseDto.getPrice().getPrice());
+        assertEquals(product.getPrice().getCurrency(), responseDto.getPrice().getCurrency());
 
         verify(productService, times(1)).getProductById(idCaptor.capture());
-        assertEquals(productId, idCaptor.getValue());
+        assertEquals(product.getId().toString(), idCaptor.getValue());
     }
 
     @Test
