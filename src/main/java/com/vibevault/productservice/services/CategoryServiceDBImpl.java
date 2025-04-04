@@ -70,7 +70,7 @@ public class CategoryServiceDBImpl implements CategoryService{
     }
 
     @Override
-    public List<Product> getProductsByCategory(String category) {
+    public List<Product> getProductsByCategory(String category) throws CategoryNotFoundException {
         Optional<Category> categoryOptional = categoryRepository.findByName(category);
         if (categoryOptional.isPresent()) {
             return categoryOptional.get().getProducts();

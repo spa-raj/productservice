@@ -15,13 +15,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/categories")
 public class CategoryController {
-    private final ProductService productService;
     private CategoryService categoryService;
 
     @Autowired
     public CategoryController(CategoryService categoryService, ProductService productService) {
         this.categoryService = categoryService;
-        this.productService = productService;
     }
     @GetMapping("")
     public List<GetCategoryResponseDto> getAllCategories() throws CategoryNotFoundException {
@@ -40,8 +38,8 @@ public class CategoryController {
         return GetCategoryResponseDto.fromCategory(category);
     }
     @GetMapping("/products")
-    public List<GetProductListResponseDto> getProductsListByCategoryUUIDs(@RequestBody GetProductListRequestDto getProductListRequestDto) throws CategoryNotFoundException {
-        List<Product> products= categoryService.getProductsList(getProductListRequestDto.getCategoryUuids());
+    public List<GetProductListResponseDto> getProductsListByCategoryUUIDs(@RequestParam("categoryUuid") List<String> categoryUuids) throws CategoryNotFoundException {
+        List<Product> products= categoryService.getProductsList(categoryUuids);
         return GetProductListResponseDto.fromProducts(products);
     }
     @GetMapping("/products/{category}")
