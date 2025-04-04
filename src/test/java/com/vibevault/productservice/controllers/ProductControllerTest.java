@@ -1,5 +1,6 @@
 package com.vibevault.productservice.controllers;
 
+import com.vibevault.productservice.config.TestConfig;
 import com.vibevault.productservice.dtos.product.*;
 import com.vibevault.productservice.exceptions.products.ProductNotCreatedException;
 import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@SpringBootTest
+@SpringBootTest(classes = {ProductController.class, TestConfig.class})
 public class ProductControllerTest {
 
     @Autowired
