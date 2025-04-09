@@ -1,5 +1,6 @@
 package com.vibevault.productservice.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @ToString(callSuper = false)
 @Table(name = "categories")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Category extends BaseModel{
     @Column(nullable = false, unique = true)
     private String name;

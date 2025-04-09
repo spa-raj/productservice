@@ -1,5 +1,6 @@
 package com.vibevault.productservice.dtos.product;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.vibevault.productservice.models.Price;
 import com.vibevault.productservice.models.Product;
 import lombok.Data;
@@ -7,6 +8,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetProductResponseDto {
     private  String id;
     private String name;

@@ -1,10 +1,12 @@
 package com.vibevault.productservice.dtos.product;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.vibevault.productservice.models.Price;
 import com.vibevault.productservice.models.Product;
 import lombok.Data;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateProductResponseDto {
     private String id;
     private String name;

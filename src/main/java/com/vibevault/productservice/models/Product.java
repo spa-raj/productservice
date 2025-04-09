@@ -1,4 +1,5 @@
 package com.vibevault.productservice.models;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.format.annotation.NumberFormat;
@@ -11,6 +12,7 @@ import org.springframework.format.annotation.NumberFormat;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @ToString(callSuper = false)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Product extends BaseModel{
     @Column(nullable = false, unique = true)
     @EqualsAndHashCode.Exclude

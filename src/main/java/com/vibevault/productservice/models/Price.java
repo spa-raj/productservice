@@ -1,5 +1,6 @@
 package com.vibevault.productservice.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
@@ -17,6 +18,7 @@ import org.springframework.format.annotation.NumberFormat;
 @Embeddable
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Price{
     @Column(nullable = false)
     @NumberFormat(pattern = "#,###,###,###.##", style = NumberFormat.Style.CURRENCY)
