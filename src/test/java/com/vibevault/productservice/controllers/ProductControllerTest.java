@@ -3,7 +3,6 @@ package com.vibevault.productservice.controllers;
 import com.vibevault.productservice.config.TestConfig;
 import com.vibevault.productservice.dtos.product.*;
 import com.vibevault.productservice.exceptions.products.ProductNotCreatedException;
-import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
 import com.vibevault.productservice.exceptions.products.ProductNotFoundException;
 import com.vibevault.productservice.models.Category;
 import com.vibevault.productservice.models.Currency;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,10 +47,10 @@ public class ProductControllerTest {
     public void setup() {
         // This method is called before each test
         // You can initialize common objects or mock behaviors here if needed
-        initiaLizeCategories();
-        initiaLizeProducts();
+        initializeCategories();
+        initializeProducts();
     }
-    private void initiaLizeProducts() {
+    private void initializeProducts() {
         // Initialize any common objects or mock behaviors here
         // For example, you can set up a mock product object
         Product product = new Product();
@@ -65,7 +63,7 @@ public class ProductControllerTest {
 
         products = List.of(product);
     }
-    private void initiaLizeCategories() {
+    private void initializeCategories() {
         Category category = new Category();
         category.setId(UUID.randomUUID());
         category.setName("Test Category");
