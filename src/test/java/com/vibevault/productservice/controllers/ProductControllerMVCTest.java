@@ -1,119 +1,345 @@
-//package com.vibevault.productservice.controllers;
-//
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.vibevault.productservice.dtos.product.GetProductResponseDto;
-//import com.vibevault.productservice.models.Category;
-//import com.vibevault.productservice.models.Currency;
-//import com.vibevault.productservice.models.Price;
-//import com.vibevault.productservice.models.Product;
-//import com.vibevault.productservice.services.ProductService;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-//import org.springframework.boot.test.mock.mockito.MockBean;
-//import org.springframework.http.MediaType;
-//import org.springframework.test.web.servlet.MockMvc;
-//import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.UUID;
-//
-//import static org.hamcrest.Matchers.hasSize;
-//import static org.mockito.Mockito.when;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-//
-//@WebMvcTest(ProductController.class)
-//public class ProductControllerMVCTest {
-//
-//    @Autowired
-//    private MockMvc mockMvc;
-//
-//    @MockBean
-//    private ProductService productService;
-//
-//    @Autowired
-//    private ObjectMapper objectMapper;
-//
-//    private List<Product> products;
-//    private List<Category> categories;
-//
-//    @BeforeEach
-//    public void setup() {
-//        // This method is called before each test
-//        // You can initialize common objects or mock behaviors here if needed
-//        initializeCategories();
-//        initializeProducts();
-//    }
-//
-//    private void initializeProducts() {
-//        products = new ArrayList<>();
-//
-//        Product product = new Product();
-//        product.setId(UUID.randomUUID());
-//        product.setName("Test Product");
-//        product.setDescription("Test Description");
-//        product.setImageUrl("http://test.com/image.jpg");
-//        product.setPrice(new Price(99.99, Currency.USD));
-//        product.setCategory(categories.get(0));
-//        products.add(product);
-//
-//        Product product2 = new Product();
-//        product2.setId(UUID.randomUUID());
-//        product2.setName("Test Product 2");
-//        product2.setDescription("Test Description 2");
-//        product2.setImageUrl("http://test.com/image2.jpg");
-//        product2.setPrice(new Price(199.99, Currency.EUR));
-//        product2.setCategory(categories.get(1));
-//        products.add(product2);
-//
-//        Product product3 = new Product();
-//        product3.setId(UUID.randomUUID());
-//        product3.setName("Test Product 3");
-//        product3.setDescription("Test Description 3");
-//        product3.setImageUrl("http://test.com/image3.jpg");
-//        product3.setPrice(new Price(299.99, Currency.INR));
-//        product3.setCategory(categories.get(0));
-//        products.add(product3);
-//    }
-//
-//    private void initializeCategories() {
-//        categories = new ArrayList<>();
-//        Category category1 = new Category();
-//        category1.setId(UUID.randomUUID());
-//        category1.setName("Test Category");
-//        category1.setDescription("Test Category Description");
-//        categories.add(category1);
-//
-//        Category category2 = new Category();
-//        category2.setId(UUID.randomUUID());
-//        category2.setName("Test Category 2");
-//        category2.setDescription("Test Category Description 2");
-//        categories.add(category2);
-//    }
-//
-//    @Test
-//    public void test_getAllProducts_success() throws Exception {
-//        // Mock the behavior of the productService to return a list of products
-//        when(productService.getAllProducts()).thenReturn(products);
-//
-//        // Convert products to DTOs as the controller would do
-//        List<GetProductResponseDto> expectedDtos = GetProductResponseDto.fromProducts(products);
-//
-//        mockMvc.perform(MockMvcRequestBuilders.get("/products"))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(content().json(objectMapper.writeValueAsString(expectedDtos)));
-//
-//        // Alternative approach using jsonPath
-//        // mockMvc.perform(MockMvcRequestBuilders.get("/products"))
-//        //        .andExpect(status().isOk())
-//        //        .andExpect(jsonPath("$", hasSize(3)))
-//        //        .andExpect(jsonPath("$[0].name").value("Test Product"))
-//        //        .andExpect(jsonPath("$[1].name").value("Test Product 2"))
-//        //        .andExpect(jsonPath("$[2].name").value("Test Product 3"));
-//    }
-//}
+package com.vibevault.productservice.controllers;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vibevault.productservice.commons.AuthenticationCommons;
+import com.vibevault.productservice.dtos.commons.UserDto;
+import com.vibevault.productservice.dtos.product.*;
+import com.vibevault.productservice.models.Category;
+import com.vibevault.productservice.models.Currency;
+import com.vibevault.productservice.models.Price;
+import com.vibevault.productservice.models.Product;
+import com.vibevault.productservice.services.ProductService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.*;
+
+import static org.mockito.ArgumentMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(ProductController.class)
+class ProductControllerMVCTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private ProductService productService;
+
+    @MockitoBean
+    private AuthenticationCommons authenticationCommons;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private UserDto sellerUser;
+    private UserDto adminUser;
+    private UserDto buyerUser;
+    private Product sampleProduct;
+
+    @BeforeEach
+    void setUp() {
+        sellerUser = new UserDto("seller@example.com", "Seller", Collections.singletonList("SELLER"));
+        adminUser = new UserDto("admin@example.com", "Admin", Collections.singletonList("ADMIN"));
+        buyerUser = new UserDto("buyer@example.com", "Buyer", Collections.singletonList("BUYER"));
+
+        Category category = new Category();
+        category.setName("Electronics");
+        Price price = new Price();
+        price.setPrice(100.0);
+        price.setCurrency(Currency.USD);
+        sampleProduct = new Product();
+        sampleProduct.setId(UUID.randomUUID());
+        sampleProduct.setName("Test Product");
+        sampleProduct.setDescription("Test Description");
+        sampleProduct.setImageUrl("http://example.com/image.jpg");
+        sampleProduct.setPrice(price);
+        sampleProduct.setCategory(category);
+    }
+
+    @Test
+    void createProduct_Success_AsSeller() throws Exception {
+        CreateProductRequestDto requestDto = new CreateProductRequestDto();
+        requestDto.setName("Test Product");
+        requestDto.setDescription("Test Description");
+        requestDto.setImageUrl("http://example.com/image.jpg");
+        requestDto.setPrice(100.0);
+        requestDto.setCurrency(Currency.USD);
+        requestDto.setCategoryName("Electronics");
+
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(sellerUser);
+        Mockito.when(productService.createProduct(any(Product.class))).thenReturn(sampleProduct);
+
+        mockMvc.perform(post("/products")
+                .header("Authorization", "Bearer seller-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Test Product"));
+    }
+
+    @Test
+    void createProduct_Success_AsAdmin() throws Exception {
+        CreateProductRequestDto requestDto = new CreateProductRequestDto();
+        requestDto.setName("Test Product");
+        requestDto.setDescription("Test Description");
+        requestDto.setImageUrl("http://example.com/image.jpg");
+        requestDto.setPrice(100.0);
+        requestDto.setCurrency(Currency.USD);
+        requestDto.setCategoryName("Electronics");
+
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(adminUser);
+        Mockito.when(productService.createProduct(any(Product.class))).thenReturn(sampleProduct);
+
+        mockMvc.perform(post("/products")
+                .header("Authorization", "Bearer admin-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Test Product"));
+    }
+
+    @Test
+    void createProduct_Fails_UnauthorizedRole() throws Exception {
+        CreateProductRequestDto requestDto = new CreateProductRequestDto();
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(buyerUser);
+
+        mockMvc.perform(post("/products")
+                .header("Authorization", "Bearer buyer-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void createProduct_Fails_InvalidToken() throws Exception {
+        CreateProductRequestDto requestDto = new CreateProductRequestDto();
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(null);
+
+        mockMvc.perform(post("/products")
+                .header("Authorization", "Bearer invalid-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void updateProduct_Success_AsAdmin() throws Exception {
+        UpdateProductRequestDto requestDto = new UpdateProductRequestDto();
+        requestDto.setId(sampleProduct.getId().toString());
+        requestDto.setName("Updated Name");
+        requestDto.setDescription("Updated Description");
+        requestDto.setImageUrl("http://example.com/image2.jpg");
+        requestDto.setPrice(200.0);
+        requestDto.setCurrency(Currency.USD);
+        requestDto.setCategoryName("Electronics");
+
+        Product updatedProduct = new Product();
+        updatedProduct.setId(sampleProduct.getId());
+        updatedProduct.setName("Updated Name");
+        updatedProduct.setDescription("Updated Description");
+        updatedProduct.setImageUrl("http://example.com/image2.jpg");
+        Price updatedPrice = new Price();
+        updatedPrice.setPrice(200.0);
+        updatedPrice.setCurrency(Currency.USD);
+        updatedProduct.setPrice(updatedPrice);
+        updatedProduct.setCategory(sampleProduct.getCategory());
+
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(adminUser);
+        Mockito.when(productService.updateProduct(eq(sampleProduct.getId().toString()), any(Product.class))).thenReturn(updatedProduct);
+
+        mockMvc.perform(patch("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer admin-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Name"));
+    }
+
+    @Test
+    void updateProduct_Fails_UnauthorizedRole() throws Exception {
+        UpdateProductRequestDto requestDto = new UpdateProductRequestDto();
+        requestDto.setId(sampleProduct.getId().toString());
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(buyerUser);
+
+        mockMvc.perform(patch("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer buyer-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void updateProduct_Fails_InvalidToken() throws Exception {
+        UpdateProductRequestDto requestDto = new UpdateProductRequestDto();
+        requestDto.setId(sampleProduct.getId().toString());
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(null);
+
+        mockMvc.perform(patch("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer invalid-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void getProductById_Success() throws Exception {
+        Mockito.when(productService.getProductById(sampleProduct.getId().toString())).thenReturn(sampleProduct);
+
+        mockMvc.perform(get("/products/" + sampleProduct.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Test Product"));
+    }
+
+    @Test
+    void getProductById_Fails_NotFound() throws Exception {
+        Mockito.when(productService.getProductById(anyString())).thenThrow(new com.vibevault.productservice.exceptions.products.ProductNotFoundException("Not found"));
+
+        mockMvc.perform(get("/products/" + sampleProduct.getId()))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void getAllProducts_Success() throws Exception {
+        Mockito.when(productService.getAllProducts()).thenReturn(Collections.singletonList(sampleProduct));
+
+        mockMvc.perform(get("/products"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Test Product"));
+    }
+
+    @Test
+    void getAllProducts_Fails_NotFound() throws Exception {
+        Mockito.when(productService.getAllProducts()).thenThrow(new com.vibevault.productservice.exceptions.products.ProductNotFoundException("Not found"));
+
+        mockMvc.perform(get("/products"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void deleteProduct_Success_AsSeller() throws Exception {
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(sellerUser);
+        Mockito.when(productService.deleteProduct(sampleProduct.getId().toString())).thenReturn(sampleProduct);
+
+        mockMvc.perform(delete("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer seller-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Test Product"));
+    }
+
+    @Test
+    void deleteProduct_Fails_UnauthorizedRole() throws Exception {
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(buyerUser);
+
+        mockMvc.perform(delete("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer buyer-token"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void deleteProduct_Fails_InvalidToken() throws Exception {
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(null);
+
+        mockMvc.perform(delete("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer invalid-token"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void deleteProduct_Fails_NotFound() throws Exception {
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(adminUser);
+        Mockito.when(productService.deleteProduct(anyString())).thenThrow(new com.vibevault.productservice.exceptions.products.ProductNotFoundException("Not found"));
+
+        mockMvc.perform(delete("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer admin-token"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void replaceProduct_Success_AsAdmin() throws Exception {
+        ReplaceProductRequestDto requestDto = new ReplaceProductRequestDto();
+        requestDto.setId(sampleProduct.getId().toString());
+        requestDto.setName("Replaced Name");
+        requestDto.setDescription("Replaced Description");
+        requestDto.setImageUrl("http://example.com/image3.jpg");
+        requestDto.setPrice(300.0);
+        requestDto.setCurrency("USD");
+        requestDto.setCategoryName("Electronics");
+
+        Product replacedProduct = new Product();
+        replacedProduct.setId(sampleProduct.getId());
+        replacedProduct.setName("Replaced Name");
+        replacedProduct.setDescription("Replaced Description");
+        replacedProduct.setImageUrl("http://example.com/image3.jpg");
+        Price replacedPrice = new Price();
+        replacedPrice.setPrice(300.0);
+        replacedPrice.setCurrency(Currency.USD);
+        replacedProduct.setPrice(replacedPrice);
+        replacedProduct.setCategory(sampleProduct.getCategory());
+
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(adminUser);
+        Mockito.when(productService.replaceProduct(eq(sampleProduct.getId().toString()), any(Product.class))).thenReturn(replacedProduct);
+
+        mockMvc.perform(put("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer admin-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Replaced Name"));
+    }
+
+    @Test
+    void replaceProduct_Fails_UnauthorizedRole() throws Exception {
+        ReplaceProductRequestDto requestDto = new ReplaceProductRequestDto();
+        requestDto.setId(sampleProduct.getId().toString());
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(buyerUser);
+
+        mockMvc.perform(put("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer buyer-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void replaceProduct_Fails_InvalidToken() throws Exception {
+        ReplaceProductRequestDto requestDto = new ReplaceProductRequestDto();
+        requestDto.setId(sampleProduct.getId().toString());
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(null);
+
+        mockMvc.perform(put("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer invalid-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void replaceProduct_Fails_NotFound() throws Exception {
+        ReplaceProductRequestDto requestDto = new ReplaceProductRequestDto();
+        requestDto.setId(sampleProduct.getId().toString());
+        requestDto.setName("Replaced Name");
+        requestDto.setDescription("Replaced Description");
+        requestDto.setImageUrl("http://example.com/image3.jpg");
+        requestDto.setPrice(300.0);
+        requestDto.setCurrency("USD"); // This was the null field causing the issue
+        requestDto.setCategoryName("Electronics");
+
+        Mockito.when(authenticationCommons.validateToken(anyString())).thenReturn(adminUser);
+        Mockito.when(productService.replaceProduct(anyString(), any(Product.class)))
+                .thenThrow(new com.vibevault.productservice.exceptions.products.ProductNotFoundException("Not found"));
+
+        mockMvc.perform(put("/products/" + sampleProduct.getId())
+                .header("Authorization", "Bearer admin-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().is4xxClientError());
+    }
+}
