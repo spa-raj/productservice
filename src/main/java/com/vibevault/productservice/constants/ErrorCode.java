@@ -8,7 +8,8 @@ public enum ErrorCode {
     PRODUCT_DELETION_FAILED,
     CATEGORY_NOT_FOUND,
     CATEGORY_CREATION_FAILED,
-    CATEGORY_ALREADY_EXISTS;
+    CATEGORY_ALREADY_EXISTS,
+    INVALID_TOKEN;
 
     @Override
     public String toString() {

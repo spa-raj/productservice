@@ -2,6 +2,7 @@ package com.vibevault.productservice.advices;
 
 import com.vibevault.productservice.constants.ErrorCode;
 import com.vibevault.productservice.dtos.exceptions.ExceptionDto;
+import com.vibevault.productservice.dtos.exceptions.authentication.InvalidTokenException;
 import com.vibevault.productservice.exceptions.categories.CategoryAlreadyExistsException;
 import com.vibevault.productservice.exceptions.categories.CategoryNotCreatedException;
 import com.vibevault.productservice.exceptions.categories.CategoryNotFoundException;
@@ -95,5 +96,13 @@ public class ExceptionAdvices {
                 categoryAlreadyExistsException.getMessage(),
                 request.getRequestURI(),
                 ErrorCode.CATEGORY_ALREADY_EXISTS.toString()),HttpStatus.CONFLICT);
+    }
+    @ExceptionHandler(InvalidTokenException.class)
+    ResponseEntity<ExceptionDto> handleInvalidTokenException(InvalidTokenException invalidTokenException,
+                                                              HttpServletRequest request) {
+        return new ResponseEntity<>(new ExceptionDto(HttpStatus.UNAUTHORIZED,
+                invalidTokenException.getMessage(),
+                request.getRequestURI(),
+                ErrorCode.INVALID_TOKEN.toString()), HttpStatus.UNAUTHORIZED);
     }
 }
