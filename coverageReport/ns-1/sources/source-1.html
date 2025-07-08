@@ -1,0 +1,159 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CategoryController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.vibevault.productservice.controllers</a>
+</div>
+
+<h1>Coverage Summary for Class: CategoryController (com.vibevault.productservice.controllers)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CategoryController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (15/15)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.vibevault.productservice.controllers;
+&nbsp;
+&nbsp;import com.vibevault.productservice.dtos.categories.*;
+&nbsp;import com.vibevault.productservice.exceptions.categories.CategoryNotCreatedException;
+&nbsp;import com.vibevault.productservice.exceptions.categories.CategoryNotFoundException;
+&nbsp;import com.vibevault.productservice.models.Category;
+&nbsp;import com.vibevault.productservice.models.Product;
+&nbsp;import com.vibevault.productservice.services.CategoryService;
+&nbsp;import com.vibevault.productservice.services.ProductService;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/categories&quot;)
+&nbsp;public class CategoryController {
+&nbsp;    private CategoryService categoryService;
+&nbsp;
+&nbsp;    @Autowired
+<b class="fc">&nbsp;    public CategoryController(CategoryService categoryService, ProductService productService) {</b>
+<b class="fc">&nbsp;        this.categoryService = categoryService;</b>
+&nbsp;    }
+&nbsp;    @GetMapping(&quot;&quot;)
+&nbsp;    public List&lt;GetCategoryResponseDto&gt; getAllCategories() throws CategoryNotFoundException {
+<b class="fc">&nbsp;        List&lt;Category&gt; categories = categoryService.getAllCategories();</b>
+<b class="fc">&nbsp;        List&lt;GetCategoryResponseDto&gt; responseDtoList =GetCategoryResponseDto.fromCategories(categories);</b>
+<b class="fc">&nbsp;        return responseDtoList;</b>
+&nbsp;    }
+&nbsp;    @GetMapping(&quot;id/{categoryId}&quot;)
+&nbsp;    public GetCategoryResponseDto getCategoryById(@PathVariable(&quot;categoryId&quot;) String categoryId) throws CategoryNotFoundException {
+<b class="fc">&nbsp;        Category category = categoryService.getCategoryById(categoryId);</b>
+<b class="fc">&nbsp;        return GetCategoryResponseDto.fromCategory(category);</b>
+&nbsp;    }
+&nbsp;    @GetMapping(&quot;name/{categoryName}&quot;)
+&nbsp;    public GetCategoryResponseDto getCategoryByName(@PathVariable(&quot;categoryName&quot;) String categoryName) throws CategoryNotFoundException {
+<b class="fc">&nbsp;        Category category = categoryService.getCategoryByName(categoryName);</b>
+<b class="fc">&nbsp;        return GetCategoryResponseDto.fromCategory(category);</b>
+&nbsp;    }
+&nbsp;    @GetMapping(&quot;/products&quot;)
+&nbsp;    public List&lt;GetProductListResponseDto&gt; getProductsListByCategoryUUIDs(@RequestParam(&quot;categoryUuid&quot;) List&lt;String&gt; categoryUuids) throws CategoryNotFoundException {
+<b class="fc">&nbsp;        List&lt;Product&gt; products= categoryService.getProductsList(categoryUuids);</b>
+<b class="fc">&nbsp;        return GetProductListResponseDto.fromProducts(products);</b>
+&nbsp;    }
+&nbsp;    @GetMapping(&quot;/products/{category}&quot;)
+&nbsp;    public List&lt;GetProductListResponseDto&gt; getProductsListByCategoryName(@PathVariable(&quot;category&quot;) String category) throws CategoryNotFoundException {
+<b class="fc">&nbsp;        List&lt;Product&gt; products= categoryService.getProductsByCategory(category);</b>
+<b class="fc">&nbsp;        return GetProductListResponseDto.fromProducts(products);</b>
+&nbsp;    }
+&nbsp;    @PostMapping(&quot;&quot;)
+&nbsp;    public CreateCategoryResponseDto createCategory(@RequestBody CreateCategoryRequestDto createCategoryRequestDto) throws CategoryNotCreatedException {
+<b class="fc">&nbsp;        Category category = categoryService.createCategory(createCategoryRequestDto.toCategory());</b>
+<b class="fc">&nbsp;        return CreateCategoryResponseDto.fromCategory(category);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-07-08 13:07</div>
+</div>
+</body>
+</html>
