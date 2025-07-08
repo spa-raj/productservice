@@ -146,7 +146,7 @@ Product Service is a Spring Boot application designed to manage product and cate
       "description": "Devices and gadgets"
     }
     ```
-- **GET /categories/products/{category}"**
+- **GET /categories/products/{category}**
   - Description: Retrieve all products in a specific category.
   - Path Parameter: `category` (name of the category)
   - Example:
