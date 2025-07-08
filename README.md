@@ -12,6 +12,9 @@
   - [Product Management](#product-management)
 - [Database Migrations](#database-migrations)
 - [Testing](#testing)
+  - [Controller Tests](#controller-tests)
+  - [Service Tests](#service-tests)
+  - [Coverage Report](#coverage-report)
 - [Error Handling](#error-handling)
 - [License](#license)
 
@@ -421,6 +424,12 @@ The application includes comprehensive unit and integration tests to ensure func
 - **CategoryServiceDBImplTest**: Tests the category service logic for database operations.
 - **ProductServiceDBImplTest**: Tests the product service logic for database operations.
 - **ProductServiceFakeStoreImplTest**: Tests the product service logic for external fake store integration.
+
+### Coverage Report
+To view the coverage report:
+1. Navigate to the `coverageReport` directory.
+2. Open the `index.html` file in a browser.
+3. Explore the detailed coverage metrics sorted by blocks, classes, lines, methods, and names.
 
 ## Error Handling
 
