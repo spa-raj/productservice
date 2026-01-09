@@ -103,7 +103,7 @@ class ProductServiceFakeStoreImplTest {
     void getProductById_nullBody_throwsException() {
         String productId = "1";
         ResponseEntity<FakeStoreProductResponseDto> responseEntity =
-                new ResponseEntity<>(null, HttpStatus.OK);
+                new ResponseEntity<>(HttpStatus.OK);
 
         when(restTemplate.getForEntity(contains(productId), eq(FakeStoreProductResponseDto.class)))
                 .thenReturn(responseEntity);
@@ -115,7 +115,7 @@ class ProductServiceFakeStoreImplTest {
     void getProductById_non2xxStatus_throwsException() {
         String productId = "1";
         ResponseEntity<FakeStoreProductResponseDto> responseEntity =
-                new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+                new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
         when(restTemplate.getForEntity(contains(productId), eq(FakeStoreProductResponseDto.class)))
                 .thenReturn(responseEntity);
@@ -143,7 +143,7 @@ class ProductServiceFakeStoreImplTest {
     @Test
     void getAllProducts_emptyOrNull_throwsException() {
         ResponseEntity<FakeStoreProductResponseDto[]> responseEntity =
-                new ResponseEntity<>(null, HttpStatus.OK);
+                new ResponseEntity<>(HttpStatus.OK);
 
         when(restTemplate.getForEntity(contains("products"), eq(FakeStoreProductResponseDto[].class)))
                 .thenReturn(responseEntity);
@@ -161,7 +161,7 @@ class ProductServiceFakeStoreImplTest {
     @Test
     void getAllProducts_non2xxStatus_throwsException() {
         ResponseEntity<FakeStoreProductResponseDto[]> responseEntity =
-                new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 
         when(restTemplate.getForEntity(contains("products"), eq(FakeStoreProductResponseDto[].class)))
                 .thenReturn(responseEntity);
@@ -189,7 +189,7 @@ class ProductServiceFakeStoreImplTest {
     void deleteProduct_nullBody_throwsProductNotFound() {
         String productId = "1";
         ResponseEntity<FakeStoreProductResponseDto> responseEntity =
-                new ResponseEntity<>(null, HttpStatus.OK);
+                new ResponseEntity<>( HttpStatus.OK);
 
         when(restTemplate.exchange(contains(productId), eq(HttpMethod.DELETE), isNull(), eq(FakeStoreProductResponseDto.class)))
                 .thenReturn(responseEntity);
@@ -201,7 +201,7 @@ class ProductServiceFakeStoreImplTest {
     void deleteProduct_non2xxStatus_throwsProductNotDeleted() {
         String productId = "1";
         ResponseEntity<FakeStoreProductResponseDto> responseEntity =
-                new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+                new ResponseEntity<>( HttpStatus.NOT_FOUND);
 
         when(restTemplate.exchange(contains(productId), eq(HttpMethod.DELETE), isNull(), eq(FakeStoreProductResponseDto.class)))
                 .thenReturn(responseEntity);
@@ -231,7 +231,7 @@ class ProductServiceFakeStoreImplTest {
         String productId = "1";
         Product product = getSampleProduct();
         ResponseEntity<FakeStoreProductResponseDto> responseEntity =
-                new ResponseEntity<>(null, HttpStatus.OK);
+                new ResponseEntity<>(HttpStatus.OK);
 
         when(restTemplate.exchange(contains(productId), eq(HttpMethod.PUT), any(HttpEntity.class), eq(FakeStoreProductResponseDto.class)))
                 .thenReturn(responseEntity);
@@ -244,7 +244,7 @@ class ProductServiceFakeStoreImplTest {
         String productId = "1";
         Product product = getSampleProduct();
         ResponseEntity<FakeStoreProductResponseDto> responseEntity =
-                new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+                new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
         when(restTemplate.exchange(contains(productId), eq(HttpMethod.PUT), any(HttpEntity.class), eq(FakeStoreProductResponseDto.class)))
                 .thenReturn(responseEntity);
