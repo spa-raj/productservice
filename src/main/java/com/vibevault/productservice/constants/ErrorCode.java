@@ -9,7 +9,8 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND,
     CATEGORY_CREATION_FAILED,
     CATEGORY_ALREADY_EXISTS,
-    INVALID_TOKEN;
+    INVALID_TOKEN,
+    ACCESS_DENIED;
 
     @Override
     public String toString() {

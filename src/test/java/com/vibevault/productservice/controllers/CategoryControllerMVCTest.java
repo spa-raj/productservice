@@ -1,25 +1,26 @@
 package com.vibevault.productservice.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vibevault.productservice.dtos.categories.CreateCategoryRequestDto;
-import com.vibevault.productservice.dtos.categories.CreateCategoryResponseDto;
-import com.vibevault.productservice.dtos.categories.GetCategoryResponseDto;
-import com.vibevault.productservice.dtos.categories.GetProductListResponseDto;
 import com.vibevault.productservice.exceptions.categories.CategoryNotCreatedException;
 import com.vibevault.productservice.exceptions.categories.CategoryNotFoundException;
 import com.vibevault.productservice.models.Category;
 import com.vibevault.productservice.models.Price;
 import com.vibevault.productservice.models.Product;
+import com.vibevault.productservice.security.RolesClaimConverter;
+import com.vibevault.productservice.security.SecurityConfig;
 import com.vibevault.productservice.services.CategoryService;
 import com.vibevault.productservice.services.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,10 +28,15 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CategoryController.class)
+@Import({SecurityConfig.class, RolesClaimConverter.class})
+@org.springframework.test.context.TestPropertySource(properties = {
+        "spring.security.oauth2.resourceserver.jwt.issuer-uri=https://test-issuer.example.com"
+})
 class CategoryControllerMVCTest {
 
     @Autowired
@@ -42,8 +48,11 @@ class CategoryControllerMVCTest {
     @MockitoBean
     private ProductService productService;
 
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
+
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
 
     private Category sampleCategory;
     private Product sampleProduct;
@@ -171,7 +180,7 @@ class CategoryControllerMVCTest {
 
     // --- createCategory ---
     @Test
-    void createCategory_Success() throws Exception {
+    void createCategory_Success_AsAdmin() throws Exception {
         CreateCategoryRequestDto requestDto = new CreateCategoryRequestDto("Books", "All kinds of books");
         Category createdCategory = new Category();
         createdCategory.setId(UUID.randomUUID());
@@ -181,8 +190,9 @@ class CategoryControllerMVCTest {
         Mockito.when(categoryService.createCategory(any(Category.class))).thenReturn(createdCategory);
 
         mockMvc.perform(post("/categories")
+                        .with(jwt().authorities(() -> "ROLE_ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .content(jsonMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(createdCategory.getId().toString()))
                 .andExpect(jsonPath("$.categoryName").value(requestDto.getName()))
@@ -196,8 +206,30 @@ class CategoryControllerMVCTest {
                 .thenThrow(new CategoryNotCreatedException("Creation failed"));
 
         mockMvc.perform(post("/categories")
+                        .with(jwt().authorities(() -> "ROLE_ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
+                        .content(jsonMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void createCategory_Fails_UnauthorizedRole() throws Exception {
+        CreateCategoryRequestDto requestDto = new CreateCategoryRequestDto("Books", "All kinds of books");
+
+        mockMvc.perform(post("/categories")
+                        .with(jwt().authorities(() -> "ROLE_BUYER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void createCategory_Fails_NoToken() throws Exception {
+        CreateCategoryRequestDto requestDto = new CreateCategoryRequestDto("Books", "All kinds of books");
+
+        mockMvc.perform(post("/categories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isUnauthorized());
     }
 }

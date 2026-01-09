@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClientException;
 
+import java.nio.file.AccessDeniedException;
+
 @ControllerAdvice
 public class ExceptionAdvices {
     /**
@@ -104,5 +106,13 @@ public class ExceptionAdvices {
                 invalidTokenException.getMessage(),
                 request.getRequestURI(),
                 ErrorCode.INVALID_TOKEN.toString()), HttpStatus.UNAUTHORIZED);
+    }
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<ExceptionDto> handleAccessDeniedException(AccessDeniedException accessDeniedException,
+                                                             HttpServletRequest request) {
+        return new ResponseEntity<>(new ExceptionDto(HttpStatus.FORBIDDEN,
+                accessDeniedException.getMessage(),
+                request.getRequestURI(),
+                ErrorCode.ACCESS_DENIED.toString()), HttpStatus.FORBIDDEN);
     }
 }

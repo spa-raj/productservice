@@ -8,6 +8,7 @@ import com.vibevault.productservice.models.Product;
 import com.vibevault.productservice.services.CategoryService;
 import com.vibevault.productservice.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,6 +49,7 @@ public class CategoryController {
         return GetProductListResponseDto.fromProducts(products);
     }
     @PostMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
     public CreateCategoryResponseDto createCategory(@RequestBody CreateCategoryRequestDto createCategoryRequestDto) throws CategoryNotCreatedException {
         Category category = categoryService.createCategory(createCategoryRequestDto.toCategory());
         return CreateCategoryResponseDto.fromCategory(category);
