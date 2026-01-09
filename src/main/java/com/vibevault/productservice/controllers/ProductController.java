@@ -1,6 +1,5 @@
 package com.vibevault.productservice.controllers;
 
-import com.vibevault.productservice.commons.AuthenticationCommons;
 import com.vibevault.productservice.dtos.product.*;
 import com.vibevault.productservice.exceptions.products.ProductNotCreatedException;
 import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
