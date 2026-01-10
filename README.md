@@ -24,16 +24,24 @@ Product Service is a Spring Boot application designed to manage product and cate
 ## Features
 - CRUD operations for products
 - CRUD operations for categories
+- OAuth2/JWT-based authentication and authorization
+- Role-based access control (RBAC) with ADMIN, SELLER, and USER roles
 - Integration with external fake store APIs
 - Database migrations using Flyway
-- Configurable service implementations
+- Configurable service implementations (database or fake store)
+- XSS protection with OWASP Encoder
 
 ## Technologies Used
 - Java 21
-- Spring Boot
-- Hibernate
+- Spring Boot 4.0.1
+- Spring Data JPA (Hibernate)
+- Spring Security with OAuth2 Resource Server
 - Flyway for database migrations
 - MySQL
+- Lombok
+- OWASP Encoder for XSS prevention
+- Spring RestClient for external API integration
+- Mockito and Spring Security Test for testing
 
 ## Setup Instructions
 
@@ -51,26 +59,19 @@ Product Service is a Spring Boot application designed to manage product and cate
    ```bash
    cd productservice
    ```
-3. Configure the database and environment variables:
-   - Update `application.properties` with your database credentials and other environment variables.
-   - Example:
-     ```properties
-     spring.datasource.url=jdbc:mysql://localhost:3306/productservice
-     spring.datasource.username=root
-     spring.datasource.password=yourpassword
-     spring.application.name=productservice
-     ## Choose a different port than the user service to avoid conflicts
-     server.port=8080
-     spring.jpa.hibernate.ddl-auto=validate
-     spring.jpa.show-sql=true
-     spring.flyway.enabled=true
-     spring.flyway.locations=classpath:db/migration
-     ## Configure the product service implementation
-     ## productServiceType can be productServiceDBImpl or productServiceFakeStoreImpl
-     ## To use the database implementation: set it to productServiceDBImpl
-     ## To use the fake store implementation: set it to productServiceFakeStoreImpl
-     productServiceType=productServiceDBImpl
+3. Configure the environment variables:
+   - The application uses environment variables for configuration. Set the following:
+     ```bash
+     export PORT=8080                                    # Server port
+     export DB_URL=jdbc:mysql://localhost:3306/productservice  # Database URL
+     export DB_USERNAME=root                             # Database username
+     export DB_PASSWORD=yourpassword                     # Database password
+     export ISSUER_URI=http://localhost:8081             # OAuth2 issuer URI (your auth server)
      ```
+   - Alternatively, you can create an `.env` file or configure these in your IDE.
+   - The `productServiceType` property in `application.properties` controls which service implementation to use:
+     - `productServiceDBImpl` - Uses the database implementation (default)
+     - `productServiceFakeStoreImpl` - Uses the external fake store API
 4. Run Flyway migrations:
    ```bash
    mvn flyway:migrate
@@ -84,7 +85,13 @@ Product Service is a Spring Boot application designed to manage product and cate
 
 ### Category Management
 - **POST /categories**
-  - Description: Create a new category.
+  - Description: Create a new category. Only ADMINs can create categories.
+  - Request Headers:
+    ```json
+    {
+      "Authorization": "Bearer <jwt_token>"
+    }
+    ```
   - Request Body:
     ```json
     {
@@ -160,80 +167,71 @@ Product Service is a Spring Boot application designed to manage product and cate
     ```json
     [
       {
-        "id": "f23d2b1c-4e5f-4a8b-9c3e-2f1a2b3c4d5e",
-        "name": "Electronics",
-        "description": "Devices and gadgets",
-        "products": [
-          {
-            "id": "fdsa1234-5678-90ab-cdef12345678",
-            "name": "iPhone 14", 
-            "description": "Latest Apple smartphone",
-            "imageUrl": "https://example.com/iphone14.jpg",
-            "categoryName": "Electronics",
-            "price": {
-              "price": 699.99,
-              "currency": "USD"
-            }
-          },
-          {
-            "id": "abcd1234-5678-90ab-cdef12345678",
-            "name": "Samsung Galaxy S21",
-            "description": "Latest Samsung smartphone",
-            "imageUrl": "https://example.com/galaxys21.jpg",
-            "categoryName": "Electronics",
-            "price": {
-              "price": 799.99,
-              "currency": "USD"
-            }
-          }
-        ]
+        "id": "fdsa1234-5678-90ab-cdef12345678",
+        "name": "iPhone 14",
+        "description": "Latest Apple smartphone",
+        "imageUrl": "https://example.com/iphone14.jpg",
+        "categoryName": "Electronics",
+        "price": {
+          "price": 699.99,
+          "currency": "USD"
+        }
+      },
+      {
+        "id": "abcd1234-5678-90ab-cdef12345678",
+        "name": "Samsung Galaxy S21",
+        "description": "Latest Samsung smartphone",
+        "imageUrl": "https://example.com/galaxys21.jpg",
+        "categoryName": "Electronics",
+        "price": {
+          "price": 799.99,
+          "currency": "USD"
+        }
       }
     ]
     ```
 - **GET /categories/products**
-  - Description: Retrieve all products in a list of category Ids.
-    - Request Body:
-        ```json
-        {
-        "categoryIds": ["f23d2b1c-4e5f-4a8b-9c3e-2f1a2b3c4d5e", "b12c3d4e-5f6g-7h8i-9j0k-1l2m3n4o5p6q"]
+  - Description: Retrieve all products in a list of category UUIDs.
+  - Query Parameter: `categoryUuid` (list of category UUIDs)
+  - Example:
+    ```bash
+    GET /categories/products?categoryUuid=f23d2b1c-4e5f-4a8b-9c3e-2f1a2b3c4d5e&categoryUuid=b12c3d4e-5f6g-7h8i-9j0k-1l2m3n4o5p6q
+    ```
+  - Response:
+    ```json
+    [
+      {
+        "id": "fdsa1234-5678-90ab-cdef12345678",
+        "name": "iPhone 14",
+        "description": "Latest Apple smartphone",
+        "imageUrl": "https://example.com/iphone14.jpg",
+        "categoryName": "Electronics",
+        "price": {
+          "price": 699.99,
+          "currency": "USD"
         }
-        ```
-    - Response:
-        ```json
-        [
-          {
-            "id": "f23d2b1c-4e5f-4a8b-9c3e-2f1a2b3c4d5e",
-            "name": "Electronics",
-            "description": "Devices and gadgets",
-            "products": [
-              {
-                "id": "fdsa1234-5678-90ab-cdef12345678",
-                "name": "iPhone 14",
-                "description": "Latest Apple smartphone",
-                "imageUrl": "https://example.com/iphone14.jpg",
-                "categoryName": "Electronics",
-                "price": {
-                  "price": 699.99,
-                  "currency": "USD"
-                }
-              }
-            ]
-          },
-          {
-            "id": "b12c3d4e-5f6g-7h8i-9j0k-1l2m3n4o5p6q",
-            "name": "Books",
-            "description": "Various genres of books",
-            "products": []
-          }
-        ]
-        ```
+      },
+      {
+        "id": "abcd1234-5678-90ab-cdef12345678",
+        "name": "The Great Gatsby",
+        "description": "Classic novel by F. Scott Fitzgerald",
+        "imageUrl": "https://example.com/gatsby.jpg",
+        "categoryName": "Books",
+        "price": {
+          "price": 12.99,
+          "currency": "USD"
+        }
+      }
+    ]
+    ```
+
 ### Product Management
 - **POST /products**
   - Description: Create a new product. Only SELLERs and ADMINs can create products.
   - Request Headers:
     ```json
     {
-      "Authorization":"eyhsdffa....."
+      "Authorization": "Bearer <jwt_token>"
     }
     ```
   - Request Body:
@@ -267,7 +265,7 @@ Product Service is a Spring Boot application designed to manage product and cate
   - Request Headers:
     ```json
     {
-      "Authorization":"eyhsdffa....."
+      "Authorization": "Bearer <jwt_token>"
     }
     ```
   - Request Body:
@@ -326,12 +324,12 @@ Product Service is a Spring Boot application designed to manage product and cate
         }
     ]
     ```
-- **GET /products/id/{productId}**
+- **GET /products/{productId}**
   - Description: Retrieve a product by its ID.
   - Path Parameter: `productId` (ID of the product)
   - Example:
     ```bash
-    GET /products/id/fdsa1234-5678-90ab-cdef12345678
+    GET /products/fdsa1234-5678-90ab-cdef12345678
     ```
   - Response:
     ```json
@@ -353,7 +351,7 @@ Product Service is a Spring Boot application designed to manage product and cate
   - Request Headers:
     ```json
     {
-      "Authorization":"eyhsdffa....."
+      "Authorization": "Bearer <jwt_token>"
     }
     ```
     - Example:
@@ -380,7 +378,7 @@ Product Service is a Spring Boot application designed to manage product and cate
   - Request Headers:
     ```json
     {
-      "Authorization":"eyhsdffa....."
+      "Authorization": "Bearer <jwt_token>"
     }
     ```
   - Request Body:
@@ -417,8 +415,10 @@ Flyway is used for managing database schema migrations. Migration scripts are lo
 The application includes comprehensive unit and integration tests to ensure functionality and reliability. Below are the key testing points:
 
 ### Controller Tests
-- **CategoryControllerTest**: Validates category endpoints such as creation and retrieval.
-- **ProductControllerTest**: Validates product endpoints such as creation and retrieval.
+- **CategoryControllerTest**: Unit tests for category controller logic.
+- **ProductControllerTest**: Unit tests for product controller logic.
+- **CategoryControllerMVCTest**: Integration tests for category endpoints using MockMvc.
+- **ProductControllerMVCTest**: Integration tests for product endpoints using MockMvc with security context.
 
 ### Service Tests
 - **CategoryServiceDBImplTest**: Tests the category service logic for database operations.
