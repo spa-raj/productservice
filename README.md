@@ -15,6 +15,7 @@
   - [Controller Tests](#controller-tests)
   - [Service Tests](#service-tests)
   - [Coverage Report](#coverage-report)
+- [Code Quality](#code-quality)
 - [Error Handling](#error-handling)
 - [License](#license)
 
@@ -430,6 +431,9 @@ To view the coverage report:
 1. Navigate to the `coverageReport` directory.
 2. Open the `index.html` file in a browser.
 3. Explore the detailed coverage metrics sorted by blocks, classes, lines, methods, and names.
+
+## Code Quality
+SonarQube integration is planned for code quality and coverage analysis.
 
 ## Error Handling
 
