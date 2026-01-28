@@ -23,10 +23,10 @@ public class ProductSpecification {
                 return criteriaBuilder.conjunction();
             }
             String pattern = "%" + searchQuery.toLowerCase() + "%";
-            return criteriaBuilder.or(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), pattern)
-            );
+            // Note: description is a @Lob (CLOB) type which doesn't support lower() in MySQL
+            // For full-text search including description, use Elasticsearch
+            // Here we search on name only for MySQL compatibility
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern);
         };
     }
 

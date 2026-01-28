@@ -25,6 +25,10 @@ public class SearchServiceDBImpl implements SearchService {
             "name", "price", "createdAt", "lastModifiedAt"
     );
 
+    private static final Set<String> ALLOWED_SORT_FIELDS_INTERNAL = Set.of(
+            "name", "price", "price.price", "createdAt", "lastModifiedAt"
+    );
+
     private static final int MAX_PAGE_SIZE = 100;
     private static final int MAX_SUGGESTIONS = 20;
 
@@ -93,7 +97,7 @@ public class SearchServiceDBImpl implements SearchService {
 
         pageable.getSort().forEach(order -> {
             String property = order.getProperty();
-            if (!ALLOWED_SORT_FIELDS.contains(property)) {
+            if (!ALLOWED_SORT_FIELDS_INTERNAL.contains(property)) {
                 throw new RuntimeException(new InvalidSearchParameterException(
                         "Invalid sort field: " + property + ". Allowed fields: " + ALLOWED_SORT_FIELDS));
             }
