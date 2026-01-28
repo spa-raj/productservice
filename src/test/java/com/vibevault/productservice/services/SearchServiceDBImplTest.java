@@ -283,7 +283,7 @@ class SearchServiceDBImplTest {
         searchService.getSuggestions("test", 100);
 
         verify(productRepository).findAll(any(Specification.class), pageableCaptor.capture());
-        assertEquals(20, pageableCaptor.getValue().getPageSize());
+        assertEquals(10, pageableCaptor.getValue().getPageSize());
     }
 
     @Test
