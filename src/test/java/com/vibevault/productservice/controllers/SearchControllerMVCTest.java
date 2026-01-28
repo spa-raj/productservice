@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -86,7 +85,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_NoFilters() throws Exception {
         Page<Product> page = new PageImpl<>(sampleProducts, PageRequest.of(0, 10), 2);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products"))
@@ -102,7 +102,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_WithQuery() throws Exception {
         Page<Product> page = new PageImpl<>(Collections.singletonList(sampleProduct), PageRequest.of(0, 10), 1);
         Mockito.when(searchService.searchProducts(
-                eq("iphone"), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                eq("iphone"), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -116,7 +117,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_WithPriceRange() throws Exception {
         Page<Product> page = new PageImpl<>(sampleProducts, PageRequest.of(0, 10), 2);
         Mockito.when(searchService.searchProducts(
-                any(), eq(50.0), eq(300.0), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), eq(50.0), eq(300.0), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -130,7 +132,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_WithCurrency() throws Exception {
         Page<Product> page = new PageImpl<>(sampleProducts, PageRequest.of(0, 10), 2);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), eq(Currency.USD), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), eq(Currency.USD), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -144,7 +147,8 @@ class SearchControllerMVCTest {
         UUID categoryId = UUID.randomUUID();
         Page<Product> page = new PageImpl<>(Collections.singletonList(sampleProduct), PageRequest.of(0, 10), 1);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), eq(categoryId), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), eq(categoryId), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -157,7 +161,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_WithCategoryName() throws Exception {
         Page<Product> page = new PageImpl<>(sampleProducts, PageRequest.of(0, 10), 2);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), eq("Electronics"), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), eq("Electronics"), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -170,7 +175,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_WithDateRange() throws Exception {
         Page<Product> page = new PageImpl<>(sampleProducts, PageRequest.of(0, 10), 2);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(Date.class), any(Date.class), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(Date.class), any(Date.class),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -186,7 +192,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_WithPagination() throws Exception {
         Page<Product> page = new PageImpl<>(Collections.singletonList(sampleProduct), PageRequest.of(1, 5), 10);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -205,7 +212,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_FirstPage() throws Exception {
         Page<Product> page = new PageImpl<>(sampleProducts, PageRequest.of(0, 10), 20);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -224,7 +232,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_SortByName() throws Exception {
         Page<Product> page = new PageImpl<>(sampleProducts, PageRequest.of(0, 10), 2);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -238,7 +247,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_SortByPrice() throws Exception {
         Page<Product> page = new PageImpl<>(sampleProducts, PageRequest.of(0, 10), 2);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -252,7 +262,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_SortByCreatedAt() throws Exception {
         Page<Product> page = new PageImpl<>(sampleProducts, PageRequest.of(0, 10), 2);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -263,6 +274,11 @@ class SearchControllerMVCTest {
 
     @Test
     void searchProducts_Fails_InvalidSortField() throws Exception {
+        Mockito.when(searchService.searchProducts(
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), eq("invalidField"), anyString()))
+                .thenThrow(new InvalidSearchParameterException("Invalid sort field: invalidField"));
+
         mockMvc.perform(get("/search/products")
                         .param("sortBy", "invalidField"))
                 .andExpect(status().isBadRequest());
@@ -274,7 +290,8 @@ class SearchControllerMVCTest {
     void searchProducts_Success_AllFiltersCombined() throws Exception {
         Page<Product> page = new PageImpl<>(Collections.singletonList(sampleProduct), PageRequest.of(0, 10), 1);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products")
@@ -298,7 +315,8 @@ class SearchControllerMVCTest {
     @Test
     void searchProducts_Fails_ServiceThrowsException() throws Exception {
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenThrow(new InvalidSearchParameterException("minPrice cannot be negative"));
 
         mockMvc.perform(get("/search/products")
@@ -310,7 +328,8 @@ class SearchControllerMVCTest {
     void searchProducts_ReturnsEmptyResults() throws Exception {
         Page<Product> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(emptyPage);
 
         mockMvc.perform(get("/search/products")
@@ -328,7 +347,8 @@ class SearchControllerMVCTest {
         // Search endpoints should be public
         Page<Product> page = new PageImpl<>(sampleProducts, PageRequest.of(0, 10), 2);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products"))
@@ -401,7 +421,8 @@ class SearchControllerMVCTest {
     void searchProducts_ResponseContainsAllFields() throws Exception {
         Page<Product> page = new PageImpl<>(Collections.singletonList(sampleProduct), PageRequest.of(0, 10), 1);
         Mockito.when(searchService.searchProducts(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                any(), any(), any(), any(), any(), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/search/products"))

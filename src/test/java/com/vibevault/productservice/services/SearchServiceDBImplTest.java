@@ -52,9 +52,9 @@ class SearchServiceDBImplTest {
         Page<Product> page = new PageImpl<>(products, PageRequest.of(0, 10), 2);
         when(productRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
         Page<Product> result = searchService.searchProducts(
-                "test", null, null, null, null, null, null, null, pageable);
+                "test", null, null, null, null, null, null, null,
+                0, 10, "createdAt", "desc");
 
         assertNotNull(result);
         assertEquals(2, result.getTotalElements());
@@ -67,9 +67,9 @@ class SearchServiceDBImplTest {
         Page<Product> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
         when(productRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(emptyPage);
 
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
         Page<Product> result = searchService.searchProducts(
-                "nonexistent", null, null, null, null, null, null, null, pageable);
+                "nonexistent", null, null, null, null, null, null, null,
+                0, 10, "createdAt", "desc");
 
         assertNotNull(result);
         assertEquals(0, result.getTotalElements());
@@ -85,11 +85,10 @@ class SearchServiceDBImplTest {
         UUID categoryId = UUID.randomUUID();
         Date createdAfter = new Date(System.currentTimeMillis() - 86400000);
         Date createdBefore = new Date();
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("name").ascending());
 
         Page<Product> result = searchService.searchProducts(
                 "iphone", 100.0, 500.0, Currency.USD, categoryId, "Electronics",
-                createdAfter, createdBefore, pageable);
+                createdAfter, createdBefore, 0, 10, "name", "asc");
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -102,9 +101,9 @@ class SearchServiceDBImplTest {
         Page<Product> page = new PageImpl<>(products, PageRequest.of(0, 10), 2);
         when(productRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
         Page<Product> result = searchService.searchProducts(
-                null, null, null, null, null, null, null, null, pageable);
+                null, null, null, null, null, null, null, null,
+                0, 10, "createdAt", "desc");
 
         assertNotNull(result);
         assertEquals(2, result.getTotalElements());
@@ -116,9 +115,9 @@ class SearchServiceDBImplTest {
         Page<Product> page = new PageImpl<>(products, PageRequest.of(0, 10), 1);
         when(productRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("price").ascending());
         Page<Product> result = searchService.searchProducts(
-                null, 50.0, 200.0, null, null, null, null, null, pageable);
+                null, 50.0, 200.0, null, null, null, null, null,
+                0, 10, "price", "asc");
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -130,9 +129,9 @@ class SearchServiceDBImplTest {
         Page<Product> page = new PageImpl<>(products, PageRequest.of(0, 10), 1);
         when(productRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
         Page<Product> result = searchService.searchProducts(
-                null, null, null, null, null, "Electronics", null, null, pageable);
+                null, null, null, null, null, "Electronics", null, null,
+                0, 10, "createdAt", "desc");
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
@@ -142,11 +141,10 @@ class SearchServiceDBImplTest {
 
     @Test
     void searchProducts_shouldThrowException_whenMinPriceNegative() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-
         InvalidSearchParameterException exception = assertThrows(
                 InvalidSearchParameterException.class,
-                () -> searchService.searchProducts(null, -10.0, null, null, null, null, null, null, pageable)
+                () -> searchService.searchProducts(null, -10.0, null, null, null, null, null, null,
+                        0, 10, "createdAt", "desc")
         );
 
         assertEquals("minPrice cannot be negative", exception.getMessage());
@@ -154,11 +152,10 @@ class SearchServiceDBImplTest {
 
     @Test
     void searchProducts_shouldThrowException_whenMaxPriceNegative() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-
         InvalidSearchParameterException exception = assertThrows(
                 InvalidSearchParameterException.class,
-                () -> searchService.searchProducts(null, null, -10.0, null, null, null, null, null, pageable)
+                () -> searchService.searchProducts(null, null, -10.0, null, null, null, null, null,
+                        0, 10, "createdAt", "desc")
         );
 
         assertEquals("maxPrice cannot be negative", exception.getMessage());
@@ -166,11 +163,10 @@ class SearchServiceDBImplTest {
 
     @Test
     void searchProducts_shouldThrowException_whenMinPriceGreaterThanMaxPrice() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-
         InvalidSearchParameterException exception = assertThrows(
                 InvalidSearchParameterException.class,
-                () -> searchService.searchProducts(null, 500.0, 100.0, null, null, null, null, null, pageable)
+                () -> searchService.searchProducts(null, 500.0, 100.0, null, null, null, null, null,
+                        0, 10, "createdAt", "desc")
         );
 
         assertEquals("minPrice cannot be greater than maxPrice", exception.getMessage());
@@ -178,13 +174,13 @@ class SearchServiceDBImplTest {
 
     @Test
     void searchProducts_shouldThrowException_whenCreatedAfterIsAfterCreatedBefore() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
         Date futureDate = new Date(System.currentTimeMillis() + 86400000);
         Date pastDate = new Date(System.currentTimeMillis() - 86400000);
 
         InvalidSearchParameterException exception = assertThrows(
                 InvalidSearchParameterException.class,
-                () -> searchService.searchProducts(null, null, null, null, null, null, futureDate, pastDate, pageable)
+                () -> searchService.searchProducts(null, null, null, null, null, null, futureDate, pastDate,
+                        0, 10, "createdAt", "desc")
         );
 
         assertEquals("createdAfter cannot be after createdBefore", exception.getMessage());
@@ -192,11 +188,10 @@ class SearchServiceDBImplTest {
 
     @Test
     void searchProducts_shouldThrowException_whenPageSizeExceedsMax() {
-        Pageable pageable = PageRequest.of(0, 150, Sort.by("createdAt").descending());
-
         InvalidSearchParameterException exception = assertThrows(
                 InvalidSearchParameterException.class,
-                () -> searchService.searchProducts(null, null, null, null, null, null, null, null, pageable)
+                () -> searchService.searchProducts(null, null, null, null, null, null, null, null,
+                        0, 150, "createdAt", "desc")
         );
 
         assertEquals("Page size cannot exceed 100", exception.getMessage());
@@ -207,11 +202,10 @@ class SearchServiceDBImplTest {
         Page<Product> page = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
         when(productRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-
         // Should not throw - min equals max is valid
         assertDoesNotThrow(() -> searchService.searchProducts(
-                null, 100.0, 100.0, null, null, null, null, null, pageable));
+                null, 100.0, 100.0, null, null, null, null, null,
+                0, 10, "createdAt", "desc"));
     }
 
     @Test
@@ -219,11 +213,10 @@ class SearchServiceDBImplTest {
         Page<Product> page = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
         when(productRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-
         // Zero is a valid price
         assertDoesNotThrow(() -> searchService.searchProducts(
-                null, 0.0, 100.0, null, null, null, null, null, pageable));
+                null, 0.0, 100.0, null, null, null, null, null,
+                0, 10, "createdAt", "desc"));
     }
 
     // ==================== GET SUGGESTIONS TESTS ====================
@@ -315,35 +308,48 @@ class SearchServiceDBImplTest {
         assertTrue(sort.getOrderFor("name").isAscending());
     }
 
-    // ==================== STATIC UTILITY METHODS TESTS ====================
+    // ==================== SORT FIELD VALIDATION TESTS ====================
 
     @Test
-    void mapSortField_shouldMapPriceToNestedPath() {
-        assertEquals("price.price", SearchServiceDBImpl.mapSortField("price"));
+    void searchProducts_shouldThrowException_whenSortFieldInvalid() {
+        InvalidSearchParameterException exception = assertThrows(
+                InvalidSearchParameterException.class,
+                () -> searchService.searchProducts(null, null, null, null, null, null, null, null,
+                        0, 10, "invalidField", "desc")
+        );
+
+        assertTrue(exception.getMessage().contains("Invalid sort field"));
     }
 
     @Test
-    void mapSortField_shouldReturnOriginalForOtherFields() {
-        assertEquals("name", SearchServiceDBImpl.mapSortField("name"));
-        assertEquals("createdAt", SearchServiceDBImpl.mapSortField("createdAt"));
-        assertEquals("lastModifiedAt", SearchServiceDBImpl.mapSortField("lastModifiedAt"));
+    void searchProducts_shouldThrowException_whenSortFieldNull() {
+        InvalidSearchParameterException exception = assertThrows(
+                InvalidSearchParameterException.class,
+                () -> searchService.searchProducts(null, null, null, null, null, null, null, null,
+                        0, 10, null, "desc")
+        );
+
+        assertTrue(exception.getMessage().contains("Invalid sort field"));
     }
 
     @Test
-    void isValidSortField_shouldReturnTrueForValidFields() {
-        assertTrue(SearchServiceDBImpl.isValidSortField("name"));
-        assertTrue(SearchServiceDBImpl.isValidSortField("price"));
-        assertTrue(SearchServiceDBImpl.isValidSortField("createdAt"));
-        assertTrue(SearchServiceDBImpl.isValidSortField("lastModifiedAt"));
-    }
+    void searchProducts_shouldAcceptValidSortFields() throws InvalidSearchParameterException {
+        Page<Product> page = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
+        when(productRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
-    @Test
-    void isValidSortField_shouldReturnFalseForInvalidFields() {
-        assertFalse(SearchServiceDBImpl.isValidSortField("invalid"));
-        assertFalse(SearchServiceDBImpl.isValidSortField("description"));
-        assertFalse(SearchServiceDBImpl.isValidSortField("id"));
-        assertFalse(SearchServiceDBImpl.isValidSortField(""));
-        assertFalse(SearchServiceDBImpl.isValidSortField(null));
+        // All valid sort fields should work
+        assertDoesNotThrow(() -> searchService.searchProducts(
+                null, null, null, null, null, null, null, null,
+                0, 10, "name", "asc"));
+        assertDoesNotThrow(() -> searchService.searchProducts(
+                null, null, null, null, null, null, null, null,
+                0, 10, "price", "desc"));
+        assertDoesNotThrow(() -> searchService.searchProducts(
+                null, null, null, null, null, null, null, null,
+                0, 10, "createdAt", "asc"));
+        assertDoesNotThrow(() -> searchService.searchProducts(
+                null, null, null, null, null, null, null, null,
+                0, 10, "lastModifiedAt", "desc"));
     }
 
     // ==================== HELPER METHODS ====================
