@@ -12,6 +12,19 @@ import java.util.UUID;
 
 public class ProductSpecification {
 
+    private static final char ESCAPE_CHAR = '\\';
+
+    /**
+     * Escapes LIKE pattern wildcards (%, _) and the escape character itself
+     * so user input is treated literally.
+     */
+    private static String escapeLikePattern(String input) {
+        return input
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+    }
+
     public static Specification<Product> notDeleted() {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("isDeleted"), false);
@@ -22,11 +35,12 @@ public class ProductSpecification {
             if (searchQuery == null || searchQuery.trim().isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
-            String pattern = "%" + searchQuery.toLowerCase() + "%";
+            String escaped = escapeLikePattern(searchQuery.toLowerCase());
+            String pattern = "%" + escaped + "%";
             // Note: description is a @Lob (CLOB) type which doesn't support lower() in MySQL
             // For full-text search including description, use Elasticsearch
             // Here we search on name only for MySQL compatibility
-            return criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern);
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern, ESCAPE_CHAR);
         };
     }
 
@@ -103,8 +117,9 @@ public class ProductSpecification {
             if (prefix == null || prefix.trim().isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
-            String pattern = prefix.toLowerCase() + "%";
-            return criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern);
+            String escaped = escapeLikePattern(prefix.toLowerCase());
+            String pattern = escaped + "%";
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern, ESCAPE_CHAR);
         };
     }
 }
