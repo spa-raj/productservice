@@ -26,7 +26,7 @@ public class SearchServiceDBImpl implements SearchService {
     );
 
     private static final int MAX_PAGE_SIZE = 100;
-    private static final int MAX_SUGGESTIONS = 20;
+    private static final int MAX_SUGGESTIONS = 10;
 
     private final ProductRepository productRepository;
 

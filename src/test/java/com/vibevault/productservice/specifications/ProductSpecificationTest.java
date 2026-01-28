@@ -284,7 +284,7 @@ class ProductSpecificationTest {
 
     @Test
     void withCreatedBefore_shouldHandleFutureDate() {
-        Date futureDate = new Date(System.currentTimeMillis() + 86400000 * 365);
+        Date futureDate = new Date(System.currentTimeMillis() + 86400000L * 365);
         Specification<Product> spec = ProductSpecification.withCreatedBefore(futureDate);
         assertNotNull(spec);
     }
