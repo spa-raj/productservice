@@ -10,6 +10,7 @@
 - [API Endpoints](#api-endpoints)
   - [Category Management](#category-management)
   - [Product Management](#product-management)
+  - [Product Search](#product-search)
 - [Database Migrations](#database-migrations)
 - [Testing](#testing)
   - [Controller Tests](#controller-tests)
@@ -25,6 +26,7 @@ Product Service is a Spring Boot application designed to manage product and cate
 ## Features
 - CRUD operations for products
 - CRUD operations for categories
+- **Product Search** with filtering, pagination, sorting, and autocomplete
 - OAuth2/JWT-based authentication and authorization
 - Role-based access control (RBAC) with ADMIN, SELLER, and USER roles
 - Integration with external fake store APIs
@@ -35,10 +37,10 @@ Product Service is a Spring Boot application designed to manage product and cate
 ## Technologies Used
 - Java 21
 - Spring Boot 4.0.1
-- Spring Data JPA (Hibernate)
+- Spring Data JPA (Hibernate) with JPA Specifications for dynamic queries
 - Spring Security with OAuth2 Resource Server
 - Flyway for database migrations
-- MySQL
+- MySQL (Elasticsearch planned for search)
 - Lombok
 - OWASP Encoder for XSS prevention
 - Spring RestClient for external API integration
@@ -408,6 +410,100 @@ Product Service is a Spring Boot application designed to manage product and cate
       }
     }
     ```
+### Product Search
+
+The search functionality provides flexible product discovery with multiple filter options. Currently implemented using MySQL with JPA Specifications, with Elasticsearch integration planned for enhanced full-text search capabilities.
+
+> **Architecture Note:** The search feature uses a Strategy pattern (`SearchService` interface) allowing seamless switching between MySQL and Elasticsearch implementations.
+
+- **GET /search/products**
+  - Description: Search products with optional filters, pagination, and sorting.
+  - Query Parameters:
+    | Parameter | Type | Description |
+    |-----------|------|-------------|
+    | `query` | String | Text search on product name |
+    | `minPrice` | Double | Minimum price filter |
+    | `maxPrice` | Double | Maximum price filter |
+    | `currency` | String | Currency filter (USD, EUR, GBP, INR) |
+    | `categoryId` | UUID | Filter by category ID |
+    | `categoryName` | String | Filter by category name (case-insensitive) |
+    | `createdAfter` | Date | Products created after this date (ISO format) |
+    | `createdBefore` | Date | Products created before this date (ISO format) |
+    | `page` | int | Page number (default: 0) |
+    | `size` | int | Page size (default: 10, max: 100) |
+    | `sortBy` | String | Sort field: name, price, createdAt, lastModifiedAt |
+    | `sortDir` | String | Sort direction: asc, desc (default: desc) |
+  - Example:
+    ```bash
+    GET /search/products?query=iphone&minPrice=100&maxPrice=1000&currency=USD&sortBy=price&sortDir=asc
+    ```
+  - Response:
+    ```json
+    {
+      "products": [
+        {
+          "id": "fdsa1234-5678-90ab-cdef12345678",
+          "name": "iPhone 14",
+          "description": "Latest Apple smartphone",
+          "imageUrl": "https://example.com/iphone14.jpg",
+          "categoryName": "Electronics",
+          "price": {
+            "price": 699.99,
+            "currency": "USD"
+          }
+        }
+      ],
+      "currentPage": 0,
+      "totalPages": 1,
+      "totalElements": 1,
+      "pageSize": 10,
+      "first": true,
+      "last": true,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+    ```
+
+- **GET /search/products/suggest**
+  - Description: Get autocomplete suggestions based on product name prefix.
+  - Query Parameters:
+    | Parameter | Type | Description |
+    |-----------|------|-------------|
+    | `prefix` | String | **Required.** Name prefix to search |
+    | `limit` | int | Max suggestions (default: 5, max: 10) |
+  - Example:
+    ```bash
+    GET /search/products/suggest?prefix=iph&limit=5
+    ```
+  - Response:
+    ```json
+    [
+      {
+        "id": "fdsa1234-5678-90ab-cdef12345678",
+        "name": "iPhone 14",
+        "categoryName": "Electronics"
+      },
+      {
+        "id": "abcd1234-5678-90ab-cdef12345678",
+        "name": "iPhone 13",
+        "categoryName": "Electronics"
+      }
+    ]
+    ```
+
+#### Current Implementation (MySQL)
+- Uses JPA Specifications for dynamic query building
+- Supports all filter combinations
+- Case-insensitive text search on product name
+- Proper escaping of SQL wildcards to prevent injection
+
+#### Future Enhancement (Elasticsearch)
+- Full-text search across name and description
+- Fuzzy matching and typo tolerance
+- Relevance scoring
+- Faster search performance at scale
+- Advanced autocomplete with suggestions
+
 ## Database Migrations
 Flyway is used for managing database schema migrations. Migration scripts are located in `src/main/resources/db/migration`.
 
@@ -420,11 +516,16 @@ The application includes comprehensive unit and integration tests to ensure func
 - **ProductControllerTest**: Unit tests for product controller logic.
 - **CategoryControllerMVCTest**: Integration tests for category endpoints using MockMvc.
 - **ProductControllerMVCTest**: Integration tests for product endpoints using MockMvc with security context.
+- **SearchControllerMVCTest**: Integration tests for search endpoints including pagination, filtering, and sorting.
 
 ### Service Tests
 - **CategoryServiceDBImplTest**: Tests the category service logic for database operations.
 - **ProductServiceDBImplTest**: Tests the product service logic for database operations.
 - **ProductServiceFakeStoreImplTest**: Tests the product service logic for external fake store integration.
+- **SearchServiceDBImplTest**: Tests the search service logic including validation and query building.
+
+### Specification Tests
+- **ProductSpecificationTest**: Tests JPA Specification builders for dynamic query composition.
 
 ### Coverage Report
 To view the coverage report:
