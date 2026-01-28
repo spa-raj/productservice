@@ -9,6 +9,7 @@ import com.vibevault.productservice.exceptions.categories.CategoryNotFoundExcept
 import com.vibevault.productservice.exceptions.products.ProductNotCreatedException;
 import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
 import com.vibevault.productservice.exceptions.products.ProductNotFoundException;
+import com.vibevault.productservice.exceptions.search.InvalidSearchParameterException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -114,5 +115,14 @@ public class ExceptionAdvices {
                 accessDeniedException.getMessage(),
                 request.getRequestURI(),
                 ErrorCode.ACCESS_DENIED.toString()), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidSearchParameterException.class)
+    ResponseEntity<ExceptionDto> handleInvalidSearchParameterException(InvalidSearchParameterException invalidSearchParameterException,
+                                                                       HttpServletRequest request) {
+        return new ResponseEntity<>(new ExceptionDto(HttpStatus.BAD_REQUEST,
+                invalidSearchParameterException.getMessage(),
+                request.getRequestURI(),
+                ErrorCode.INVALID_SEARCH_PARAMETER.toString()), HttpStatus.BAD_REQUEST);
     }
 }
