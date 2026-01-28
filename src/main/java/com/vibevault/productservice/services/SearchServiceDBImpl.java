@@ -25,10 +25,6 @@ public class SearchServiceDBImpl implements SearchService {
             "name", "price", "createdAt", "lastModifiedAt"
     );
 
-    private static final Set<String> ALLOWED_SORT_FIELDS_INTERNAL = Set.of(
-            "name", "price", "price.price", "createdAt", "lastModifiedAt"
-    );
-
     private static final int MAX_PAGE_SIZE = 100;
     private static final int MAX_SUGGESTIONS = 20;
 
@@ -42,10 +38,17 @@ public class SearchServiceDBImpl implements SearchService {
     @Override
     public Page<Product> searchProducts(String query, Double minPrice, Double maxPrice,
                                          Currency currency, UUID categoryId, String categoryName,
-                                         Date createdAfter, Date createdBefore, Pageable pageable)
+                                         Date createdAfter, Date createdBefore,
+                                         int page, int size, String sortBy, String sortDir)
             throws InvalidSearchParameterException {
 
-        validateSearchParameters(minPrice, maxPrice, createdAfter, createdBefore, pageable);
+        validateSearchParameters(minPrice, maxPrice, createdAfter, createdBefore, size, sortBy);
+
+        String mappedSortField = mapSortField(sortBy);
+        Sort.Direction direction = sortDir != null && sortDir.equalsIgnoreCase("asc")
+                ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, mappedSortField);
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         Specification<Product> spec = Specification.where(ProductSpecification.notDeleted())
                 .and(ProductSpecification.withQuery(query))
@@ -74,7 +77,7 @@ public class SearchServiceDBImpl implements SearchService {
 
     private void validateSearchParameters(Double minPrice, Double maxPrice,
                                           Date createdAfter, Date createdBefore,
-                                          Pageable pageable) throws InvalidSearchParameterException {
+                                          int size, String sortBy) throws InvalidSearchParameterException {
         if (minPrice != null && minPrice < 0) {
             throw new InvalidSearchParameterException("minPrice cannot be negative");
         }
@@ -91,27 +94,24 @@ public class SearchServiceDBImpl implements SearchService {
             throw new InvalidSearchParameterException("createdAfter cannot be after createdBefore");
         }
 
-        if (pageable.getPageSize() > MAX_PAGE_SIZE) {
+        if (size > MAX_PAGE_SIZE) {
             throw new InvalidSearchParameterException("Page size cannot exceed " + MAX_PAGE_SIZE);
         }
 
-        pageable.getSort().forEach(order -> {
-            String property = order.getProperty();
-            if (!ALLOWED_SORT_FIELDS_INTERNAL.contains(property)) {
-                throw new RuntimeException(new InvalidSearchParameterException(
-                        "Invalid sort field: " + property + ". Allowed fields: " + ALLOWED_SORT_FIELDS));
-            }
-        });
+        if (!isValidSortField(sortBy)) {
+            throw new InvalidSearchParameterException(
+                    "Invalid sort field: " + sortBy + ". Allowed fields: " + ALLOWED_SORT_FIELDS);
+        }
     }
 
-    public static String mapSortField(String sortBy) {
+    private String mapSortField(String sortBy) {
         if ("price".equals(sortBy)) {
             return "price.price";
         }
         return sortBy;
     }
 
-    public static boolean isValidSortField(String sortBy) {
+    private boolean isValidSortField(String sortBy) {
         return sortBy != null && ALLOWED_SORT_FIELDS.contains(sortBy);
     }
 }
