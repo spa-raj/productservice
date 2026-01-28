@@ -6,6 +6,7 @@ import com.vibevault.productservice.models.Currency;
 import com.vibevault.productservice.models.Price;
 import com.vibevault.productservice.models.Product;
 import com.vibevault.productservice.repositories.ProductRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -42,6 +43,11 @@ class SearchServiceDBImplTest {
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        closeable.close();
     }
 
     // ==================== SEARCH PRODUCTS TESTS ====================
