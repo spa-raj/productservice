@@ -311,7 +311,9 @@ class SearchServiceDBImplTest {
 
         verify(productRepository).findAll(any(Specification.class), pageableCaptor.capture());
         Sort sort = pageableCaptor.getValue().getSort();
-        assertTrue(sort.getOrderFor("name").isAscending());
+        Sort.Order nameOrder = sort.getOrderFor("name");
+        assertNotNull(nameOrder, "Sort order for 'name' field should not be null");
+        assertTrue(nameOrder.isAscending());
     }
 
     // ==================== SORT FIELD VALIDATION TESTS ====================
