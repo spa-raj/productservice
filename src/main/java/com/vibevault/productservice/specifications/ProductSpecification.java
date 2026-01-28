@@ -3,6 +3,7 @@ package com.vibevault.productservice.specifications;
 import com.vibevault.productservice.models.Category;
 import com.vibevault.productservice.models.Currency;
 import com.vibevault.productservice.models.Product;
+import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,6 +24,20 @@ public class ProductSpecification {
                 .replace("\\", "\\\\")
                 .replace("%", "\\%")
                 .replace("_", "\\_");
+    }
+
+    /**
+     * Gets an existing join for the specified attribute or creates a new one.
+     * This prevents duplicate joins when multiple specifications filter on the same relation.
+     */
+    @SuppressWarnings("unchecked")
+    private static <X, Y> Join<X, Y> getOrCreateJoin(From<?, X> from, String attribute, JoinType joinType) {
+        for (Join<X, ?> join : from.getJoins()) {
+            if (join.getAttribute().getName().equals(attribute)) {
+                return (Join<X, Y>) join;
+            }
+        }
+        return from.join(attribute, joinType);
     }
 
     public static Specification<Product> notDeleted() {
@@ -76,7 +91,7 @@ public class ProductSpecification {
             if (categoryId == null) {
                 return criteriaBuilder.conjunction();
             }
-            Join<Product, Category> categoryJoin = root.join("category", JoinType.INNER);
+            Join<Product, Category> categoryJoin = getOrCreateJoin(root, "category", JoinType.INNER);
             return criteriaBuilder.equal(categoryJoin.get("id"), categoryId);
         };
     }
@@ -86,7 +101,7 @@ public class ProductSpecification {
             if (categoryName == null || categoryName.trim().isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
-            Join<Product, Category> categoryJoin = root.join("category", JoinType.INNER);
+            Join<Product, Category> categoryJoin = getOrCreateJoin(root, "category", JoinType.INNER);
             return criteriaBuilder.equal(
                     criteriaBuilder.lower(categoryJoin.get("name")),
                     categoryName.toLowerCase()
