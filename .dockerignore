@@ -9,9 +9,8 @@
 .vscode
 .run
 
-# Build artifacts
+# Build artifacts (JAR is built inside container, not copied from host)
 target/
-!target/*.jar
 
 # Maven
 .mvn/wrapper/maven-wrapper.jar
