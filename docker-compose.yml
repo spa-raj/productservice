@@ -1,0 +1,62 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: productservice-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: productservice
+      MYSQL_USER: productuser
+      MYSQL_PASSWORD: productpass
+    ports:
+      - "3307:3306"  # Use 3307 on host to avoid conflict with local MySQL
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - productservice-network
+
+  # Product Service Application
+  productservice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: productservice-app
+    environment:
+      PORT: 8080
+      DB_URL: jdbc:mysql://mysql:3306/productservice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: productuser
+      DB_PASSWORD: productpass
+      # Local dev: userservice (via shared vibevault-network)
+      # Production (K8s): userservice.<namespace>.svc.cluster.local
+      ISSUER_URI: ${ISSUER_URI:-http://userservice:8081}
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    networks:
+      - productservice-network
+      - vibevault-network  # Join shared network for inter-service communication
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  productservice-network:
+    driver: bridge
+  vibevault-network:
+    external: true  # Shared network for inter-service communication

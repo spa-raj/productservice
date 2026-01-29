@@ -22,6 +22,8 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy((SessionCreationPolicy.STATELESS)))
                 .authorizeHttpRequests(auth -> auth
+                        // Health check endpoints for Docker/K8s probes
+                        .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/search/**").permitAll()
