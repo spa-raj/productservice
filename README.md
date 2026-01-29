@@ -7,6 +7,11 @@
 - [Setup Instructions](#setup-instructions)
   - [Prerequisites](#prerequisites)
   - [Steps](#steps)
+- [Docker Setup](#docker-setup)
+  - [Prerequisites](#docker-prerequisites)
+  - [Quick Start](#quick-start)
+  - [Running with Other Services](#running-with-other-services)
+  - [Useful Commands](#useful-commands)
 - [API Endpoints](#api-endpoints)
   - [Category Management](#category-management)
   - [Product Management](#product-management)
@@ -39,8 +44,10 @@ Product Service is a Spring Boot application designed to manage product and cate
 - Spring Boot 4.0.1
 - Spring Data JPA (Hibernate) with JPA Specifications for dynamic queries
 - Spring Security with OAuth2 Resource Server
+- Spring Boot Actuator for health checks and metrics
 - Flyway for database migrations
 - MySQL (Elasticsearch planned for search)
+- Docker & Docker Compose for containerization
 - Lombok
 - OWASP Encoder for XSS prevention
 - Spring RestClient for external API integration
@@ -51,7 +58,7 @@ Product Service is a Spring Boot application designed to manage product and cate
 ### Prerequisites
 - Java 21 or higher
 - Maven
-- MySQL database
+- MySQL database (or use Docker - see [Docker Setup](#docker-setup))
 
 ### Steps
 1. Clone the repository:
@@ -83,6 +90,111 @@ Product Service is a Spring Boot application designed to manage product and cate
    ```bash
    mvn spring-boot:run
    ```
+
+## Docker Setup
+
+Run the Product Service in containers for consistent development and deployment.
+
+### Docker Prerequisites
+- Docker Engine 20.10+
+- Docker Compose v2.0+
+
+### Quick Start
+
+1. **Start the service with MySQL:**
+   ```bash
+   docker compose up -d
+   ```
+   This starts:
+   - MySQL 8.0 on port 3307 (host) → 3306 (container)
+   - Product Service on port 8080
+
+2. **Verify the service is running:**
+   ```bash
+   # Check container status
+   docker compose ps
+
+   # Check health endpoint
+   curl http://localhost:8080/actuator/health
+   ```
+
+3. **View logs:**
+   ```bash
+   docker compose logs -f productservice
+   ```
+
+4. **Stop the service:**
+   ```bash
+   docker compose down
+   ```
+
+5. **Stop and remove volumes (clean slate):**
+   ```bash
+   docker compose down -v
+   ```
+
+### Running with Other Services
+
+The Product Service needs to communicate with the User Service for JWT validation. To enable inter-service communication:
+
+1. **Create a shared Docker network:**
+   ```bash
+   docker network create vibevault-network
+   ```
+
+2. **Start User Service** (in the userservice project):
+   ```bash
+   # Ensure userservice's docker-compose.yml includes:
+   # networks:
+   #   - vibevault-network (external: true)
+   docker compose up -d
+   ```
+
+3. **Start Product Service:**
+   ```bash
+   docker compose up -d
+   ```
+
+The Product Service is configured to reach User Service at `http://userservice:8081` via the shared network.
+
+**Override the issuer URI if needed:**
+```bash
+ISSUER_URI=http://host.docker.internal:8081 docker compose up -d
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | 8080 | Server port |
+| `DB_URL` | jdbc:mysql://mysql:3306/productservice | Database connection URL |
+| `DB_USERNAME` | productuser | Database username |
+| `DB_PASSWORD` | productpass | Database password |
+| `ISSUER_URI` | http://userservice:8081 | OAuth2 issuer URI for JWT validation |
+| `JAVA_OPTS` | -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 | JVM options |
+
+### Useful Commands
+
+```bash
+# Build the image without cache
+docker compose build --no-cache
+
+# View container resource usage
+docker stats productservice-app productservice-mysql
+
+# Execute commands inside the container
+docker exec -it productservice-app sh
+
+# Connect to MySQL
+docker exec -it productservice-mysql mysql -u productuser -p productservice
+```
+
+### Production Considerations
+
+- **Secrets Management:** The credentials in `docker-compose.yml` are for local development only. For production (Kubernetes/EKS), use AWS Secrets Manager, Kubernetes Secrets, or HashiCorp Vault.
+- **Image Size:** The multi-stage Dockerfile produces an optimized image (~250MB) using JRE Alpine.
+- **Health Checks:** The container includes health checks at `/actuator/health` for orchestration platforms.
+- **Non-root User:** The container runs as a non-root user (`spring`) for security.
 
 ## API Endpoints
 
