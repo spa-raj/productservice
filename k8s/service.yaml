@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: productservice
+  namespace: vibevault
+  labels:
+    app: productservice
+    part-of: vibevault
+spec:
+  type: ClusterIP
+  selector:
+    app: productservice
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
