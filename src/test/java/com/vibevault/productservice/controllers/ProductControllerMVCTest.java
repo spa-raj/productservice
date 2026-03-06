@@ -204,6 +204,39 @@ class ProductControllerMVCTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void updateProduct_Success_WithoutIdInBody() throws Exception {
+        UpdateProductRequestDto requestDto = new UpdateProductRequestDto();
+        requestDto.setName("Updated Name");
+        requestDto.setDescription("Updated Description");
+        requestDto.setImageUrl("http://example.com/image2.jpg");
+        requestDto.setPrice(200.0);
+        requestDto.setCurrency(Currency.USD);
+        requestDto.setCategoryName("Electronics");
+
+        Product updatedProduct = new Product();
+        updatedProduct.setId(sampleProduct.getId());
+        updatedProduct.setName("Updated Name");
+        updatedProduct.setDescription("Updated Description");
+        updatedProduct.setImageUrl("http://example.com/image2.jpg");
+        Price updatedPrice = new Price();
+        updatedPrice.setPrice(200.0);
+        updatedPrice.setCurrency(Currency.USD);
+        updatedProduct.setPrice(updatedPrice);
+        updatedProduct.setCategory(sampleProduct.getCategory());
+
+        Mockito.when(productService.updateProduct(eq(sampleProduct.getId().toString()), any(Product.class)))
+                .thenReturn(updatedProduct);
+
+        mockMvc.perform(patch("/products/" + sampleProduct.getId())
+                        .with(jwt().authorities(() -> "ROLE_ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Name"))
+                .andExpect(jsonPath("$.id").value(sampleProduct.getId().toString()));
+    }
+
     // ==================== GET PRODUCT TESTS (Public) ====================
 
     @Test
@@ -361,6 +394,39 @@ class ProductControllerMVCTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void replaceProduct_Success_WithoutIdInBody() throws Exception {
+        ReplaceProductRequestDto requestDto = new ReplaceProductRequestDto();
+        requestDto.setName("Replaced Name");
+        requestDto.setDescription("Replaced Description");
+        requestDto.setImageUrl("http://example.com/image3.jpg");
+        requestDto.setPrice(300.0);
+        requestDto.setCurrency("USD");
+        requestDto.setCategoryName("Electronics");
+
+        Product replacedProduct = new Product();
+        replacedProduct.setId(sampleProduct.getId());
+        replacedProduct.setName("Replaced Name");
+        replacedProduct.setDescription("Replaced Description");
+        replacedProduct.setImageUrl("http://example.com/image3.jpg");
+        Price replacedPrice = new Price();
+        replacedPrice.setPrice(300.0);
+        replacedPrice.setCurrency(Currency.USD);
+        replacedProduct.setPrice(replacedPrice);
+        replacedProduct.setCategory(sampleProduct.getCategory());
+
+        Mockito.when(productService.replaceProduct(eq(sampleProduct.getId().toString()), any(Product.class)))
+                .thenReturn(replacedProduct);
+
+        mockMvc.perform(put("/products/" + sampleProduct.getId())
+                        .with(jwt().authorities(() -> "ROLE_ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Replaced Name"))
+                .andExpect(jsonPath("$.id").value(sampleProduct.getId().toString()));
     }
 
     @Test
