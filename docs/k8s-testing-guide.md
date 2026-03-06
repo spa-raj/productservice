@@ -84,7 +84,17 @@ ADMIN_TOKEN=$(echo "$TOKEN_RESPONSE" | python3 -c "import sys,json; print(json.l
 ### Verify Token Claims
 
 ```bash
-echo "$ADMIN_TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | python3 -m json.tool
+echo "$ADMIN_TOKEN" | python3 - << 'PY'
+import sys, json, base64
+token = sys.stdin.read().strip()
+parts = token.split('.')
+if len(parts) > 1:
+    payload_b64 = parts[1]
+    padding = '=' * (-len(payload_b64) % 4)
+    payload = base64.urlsafe_b64decode(payload_b64 + padding)
+    claims = json.loads(payload)
+    print(json.dumps(claims, indent=2, sort_keys=True))
+PY
 ```
 
 Expected output includes `"roles": ["ADMIN"]`.
