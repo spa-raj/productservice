@@ -1,7 +1,7 @@
 # Plan: Kubernetes Manifests for Product Service
 
 ## Context
-The productservice needs Kubernetes manifests to deploy alongside the existing userservice in the `vibevault` namespace. The userservice already has k8s manifests at `/home/sparsh-raj/IdeaProjects/userservice/k8s/` which serve as the reference for structure and conventions.
+The productservice needs Kubernetes manifests to deploy alongside the existing userservice in the `vibevault` namespace. The userservice already has k8s manifests under its `k8s/` directory, which serve as the reference for structure and conventions.
 
 ## Files to Create
 
