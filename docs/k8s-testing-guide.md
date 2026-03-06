@@ -75,7 +75,7 @@ CODE=$(echo "$REDIRECT" | grep -o 'code=[^&]*' | cut -d= -f2)
 
 ```bash
 TOKEN_RESPONSE=$(curl -s -X POST http://localhost:8081/oauth2/token \
-  -u "vibevault-client:abc@12345" \
+  -u "vibevault-client:${OAUTH_CLIENT_SECRET}" \
   -d "grant_type=authorization_code&code=$CODE&redirect_uri=https://oauth.pstmn.io/v1/callback")
 
 ADMIN_TOKEN=$(echo "$TOKEN_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
