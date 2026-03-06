@@ -29,6 +29,7 @@ public class ProductController {
     @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public UpdateProductResponseDto updateProduct(@PathVariable("productId") String productId,
                                                   @RequestBody UpdateProductRequestDto updateProductRequestDto) throws ProductNotFoundException {
+        updateProductRequestDto.setId(productId);
         Product product = productService.updateProduct(productId, updateProductRequestDto.toProduct());
         return UpdateProductResponseDto.fromProduct(product);
     }
@@ -53,6 +54,7 @@ public class ProductController {
     @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public ReplaceProductResponseDto replaceProduct(@PathVariable("productId") String productId,
                                                     @RequestBody ReplaceProductRequestDto replaceProductRequestDto) throws ProductNotFoundException {
+        replaceProductRequestDto.setId(productId);
         Product product = productService.replaceProduct(productId, replaceProductRequestDto.toProduct());
         return ReplaceProductResponseDto.fromProduct(product);
 
