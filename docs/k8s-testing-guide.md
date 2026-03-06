@@ -25,9 +25,13 @@ CSRF=$(grep -o 'name="_csrf"[^>]*value="[^"]*"' /tmp/login.html | grep -o 'value
 ### Step 2: Submit Login Credentials
 
 ```bash
+# Set these environment variables to your test user credentials before running:
+# export OAUTH_USERNAME="your-test-username@example.com"
+# export OAUTH_PASSWORD="your-secure-test-password"
+
 curl -s -c /tmp/cookies.txt -b /tmp/cookies.txt \
   -X POST http://localhost:8081/login \
-  -d "username=admin@gmail.com&password=abcd@1234&_csrf=$CSRF" > /dev/null
+  -d "username=${OAUTH_USERNAME}&password=${OAUTH_PASSWORD}&_csrf=$CSRF" > /dev/null
 ```
 
 This authenticates the session. The session cookie is stored in `/tmp/cookies.txt`.
