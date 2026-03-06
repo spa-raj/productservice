@@ -43,7 +43,10 @@ spec:
             - name: MYSQL_DATABASE
               value: productservice
             - name: MYSQL_USER
-              value: productuser
+              valueFrom:
+                secretKeyRef:
+                  name: productservice-secret
+                  key: DB_USERNAME
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:

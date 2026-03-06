@@ -21,7 +21,7 @@ metadata:
 data:
   PORT: "8080"
   DB_URL: "jdbc:mysql://productservice-mysql:3306/productservice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-  ISSUER_URI: "http://userservice.vibevault.svc.cluster.local:80"
+  ISSUER_URI: "http://userservice:8081"
   SPRING_PROFILES_ACTIVE: "default"
 ```
 
@@ -89,7 +89,7 @@ Three resources separated by `---`:
 **MySQL Deployment:**
 - Name: `productservice-mysql`, 1 replica, Recreate strategy
 - Image: `mysql:8.0`
-- Env: `MYSQL_DATABASE=productservice`, `MYSQL_USER=productuser`, `MYSQL_PASSWORD` from secret (`DB_PASSWORD`), `MYSQL_ROOT_PASSWORD` from secret (`DB_PASSWORD`)
+- Env: `MYSQL_DATABASE=productservice`, `MYSQL_USER` from secret (`DB_USERNAME`), `MYSQL_PASSWORD` from secret (`DB_PASSWORD`), `MYSQL_ROOT_PASSWORD` from secret (`DB_PASSWORD`)
 - Resources: same as userservice MySQL (cpu 250m-500m, mem 512Mi-768Mi)
 - Volume mount: `/var/lib/mysql` from PVC
 - Readiness probe: `mysqladmin ping -h 127.0.0.1 --protocol=TCP` (initialDelay=30s, period=10s, timeout=5s)
@@ -106,7 +106,7 @@ Three resources separated by `---`:
 | DB host | userservice-mysql | productservice-mysql |
 | PVC name | mysql-pvc | productservice-mysql-pvc |
 | MySQL user | root only | productuser (non-root) |
-| ISSUER_URI | self (`http://userservice:8081`) | points to userservice (`http://userservice.vibevault.svc.cluster.local:80`) |
+| ISSUER_URI | self (`http://userservice:8081`) | points to userservice (`http://userservice:8081`) |
 | No namespace.yaml | N/A | Shared `vibevault` namespace already exists |
 | MySQL env vars | MYSQL_ROOT_PASSWORD only | MYSQL_DATABASE + MYSQL_USER + MYSQL_PASSWORD + MYSQL_ROOT_PASSWORD |
 
