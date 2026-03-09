@@ -36,7 +36,7 @@ externalSecrets:
   dbSecretName: "vibevault/dev/productservice/db-credentials"
 
 mysql:
-  enabled: true
+  enabled: false
   image: mysql:8.0
   storage: 1Gi
   resources:
