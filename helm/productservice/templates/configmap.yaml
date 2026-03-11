@@ -10,3 +10,4 @@ data:
   DB_URL: {{ .Values.config.dbUrl | default (printf "jdbc:mysql://%s-mysql:3306/productservice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC" (include "productservice.fullname" .)) | quote }}
   ISSUER_URI: {{ .Values.config.issuerUri | quote }}
   SPRING_PROFILES_ACTIVE: {{ .Values.config.springProfilesActive | quote }}
+  SPRING_FLYWAY_ENABLED: "false"
