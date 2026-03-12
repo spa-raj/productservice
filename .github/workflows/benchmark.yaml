@@ -1,0 +1,148 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_script:
+        description: 'Benchmark script to run'
+        required: true
+        default: 'mysql-baseline.js'
+        type: choice
+        options:
+          - mysql-baseline.js
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  EKS_CLUSTER_NAME: vibevault-dev
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  benchmark:
+    name: Run Benchmark
+    runs-on: ubuntu-latest
+    environment: dev
+    concurrency:
+      group: benchmark-productservice-dev
+      cancel-in-progress: false
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubectl
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: Verify productservice is running
+        run: |
+          kubectl rollout status deployment/productservice -n vibevault --timeout=60s
+
+      - name: Delete previous benchmark resources
+        run: |
+          kubectl delete job benchmark-mysql-baseline -n vibevault --ignore-not-found
+          kubectl delete configmap k6-benchmark-script -n vibevault --ignore-not-found
+
+      - name: Create ConfigMap from benchmark script
+        run: |
+          kubectl create configmap k6-benchmark-script \
+            -n vibevault \
+            --from-file=${{ inputs.test_script }}=benchmarks/${{ inputs.test_script }}
+
+      - name: Apply benchmark job
+        run: |
+          # Extract only the Job manifest (skip the ConfigMap template — we created it above)
+          kubectl apply -f - <<'EOF'
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: benchmark-mysql-baseline
+            namespace: vibevault
+            labels:
+              app: productservice
+              part-of: vibevault
+              purpose: benchmark
+          spec:
+            backoffLimit: 0
+            ttlSecondsAfterFinished: 600
+            template:
+              metadata:
+                labels:
+                  app: productservice
+                  purpose: benchmark
+              spec:
+                restartPolicy: Never
+                containers:
+                  - name: k6
+                    image: grafana/k6:latest
+                    command:
+                      - k6
+                      - run
+                      - --summary-trend-stats=min,avg,med,p(90),p(95),p(99),max
+                      - --env
+                      - BASE_URL=http://productservice:80
+                      - /scripts/${{ inputs.test_script }}
+                    volumeMounts:
+                      - name: k6-scripts
+                        mountPath: /scripts
+                        readOnly: true
+                    resources:
+                      requests:
+                        cpu: 500m
+                        memory: 256Mi
+                      limits:
+                        cpu: "1"
+                        memory: 512Mi
+                volumes:
+                  - name: k6-scripts
+                    configMap:
+                      name: k6-benchmark-script
+          EOF
+
+      - name: Wait for benchmark to complete
+        run: |
+          echo "Benchmark running (~15 minutes)..."
+          while true; do
+            COMPLETE=$(kubectl get job benchmark-mysql-baseline -n vibevault -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null)
+            FAILED=$(kubectl get job benchmark-mysql-baseline -n vibevault -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null)
+            if [ "$COMPLETE" = "True" ]; then
+              echo "Benchmark completed successfully."
+              break
+            elif [ "$FAILED" = "True" ]; then
+              echo "Benchmark job failed!"
+              exit 1
+            fi
+            # Print a progress dot every 30s
+            printf "."
+            sleep 30
+          done
+
+      - name: Capture benchmark results
+        if: always()
+        run: |
+          echo "==============================================="
+          echo "  BENCHMARK RESULTS: ${{ inputs.test_script }}"
+          echo "  Target: productservice (in-cluster)"
+          echo "  Dataset: 2M products, 50 categories"
+          echo "  Date: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          echo "==============================================="
+          echo ""
+          kubectl logs job/benchmark-mysql-baseline -n vibevault --pod-running-timeout=10s 2>&1 | tee /tmp/benchmark-results.log
+          echo ""
+
+      - name: Upload results as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-${{ inputs.test_script }}-${{ github.run_number }}
+          path: /tmp/benchmark-results.log
+          retention-days: 90
