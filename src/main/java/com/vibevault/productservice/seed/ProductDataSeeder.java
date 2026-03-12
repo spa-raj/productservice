@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import com.vibevault.productservice.models.Currency;
+
 import java.nio.ByteBuffer;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -23,7 +25,7 @@ public class ProductDataSeeder implements CommandLineRunner {
 
     private static final int TARGET_PRODUCTS = 2_000_000;
     private static final int BATCH_SIZE = 10_000;
-    private static final int CURRENCY_INR_ORDINAL = 3;
+    private static final int CURRENCY_INR_ORDINAL = Currency.INR.ordinal();
 
     private static final String[] ADJECTIVES = {
             "Premium", "Classic", "Modern", "Vintage", "Elegant",
@@ -99,13 +101,14 @@ public class ProductDataSeeder implements CommandLineRunner {
     }
 
     private List<byte[]> seedCategories() {
-        Long categoryCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM categories", Long.class);
-        if (categoryCount != null && categoryCount >= CATEGORY_NAMES.length) {
-            log.info("Categories already seeded ({} rows), fetching existing IDs.", categoryCount);
-            return jdbcTemplate.query("SELECT id FROM categories", (rs, rowNum) -> rs.getBytes("id"));
-        }
+        log.info("Ensuring {} categories are present...", CATEGORY_NAMES.length);
 
-        log.info("Seeding {} categories...", CATEGORY_NAMES.length);
+        // Fetch existing categories by name to handle partial re-runs
+        Map<String, byte[]> existingByName = new HashMap<>();
+        jdbcTemplate.query("SELECT id, name FROM categories", rs -> {
+            existingByName.put(rs.getString("name"), rs.getBytes("id"));
+        });
+
         Timestamp now = Timestamp.from(Instant.now());
         List<byte[]> categoryIds = new ArrayList<>();
 
@@ -114,12 +117,21 @@ public class ProductDataSeeder implements CommandLineRunner {
 
         List<Object[]> batchArgs = new ArrayList<>();
         for (String categoryName : CATEGORY_NAMES) {
-            byte[] id = uuidToBytes(UUID.randomUUID());
-            categoryIds.add(id);
-            batchArgs.add(new Object[]{id, now, now, false, categoryName, "Products in " + categoryName});
+            byte[] existingId = existingByName.get(categoryName);
+            if (existingId != null) {
+                categoryIds.add(existingId);
+            } else {
+                byte[] id = uuidToBytes(UUID.randomUUID());
+                categoryIds.add(id);
+                batchArgs.add(new Object[]{id, now, now, false, categoryName, "Products in " + categoryName});
+            }
         }
-        jdbcTemplate.batchUpdate(sql, batchArgs);
-        log.info("Inserted {} categories.", categoryIds.size());
+
+        if (!batchArgs.isEmpty()) {
+            jdbcTemplate.batchUpdate(sql, batchArgs);
+        }
+
+        log.info("Categories: {} existing, {} inserted.", existingByName.size(), batchArgs.size());
         return categoryIds;
     }
 
