@@ -28,7 +28,7 @@ public class Category extends BaseModel{
     @ToString.Exclude
     private List<Product> featuredProducts;
 
-    @OneToMany(mappedBy = "category", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private List<Product> products;

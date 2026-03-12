@@ -7,6 +7,7 @@ import com.vibevault.productservice.models.Category;
 import com.vibevault.productservice.models.Product;
 import com.vibevault.productservice.repositories.CategoryRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +59,7 @@ public class CategoryServiceDBImpl implements CategoryService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getProductsList(List<String> categoryUuids) throws CategoryNotFoundException {
         List<UUID> uuids = categoryUuids.stream().map(UUID::fromString).toList();
         List<Category> categories = categoryRepository.findAllByIdIn(uuids);
@@ -70,6 +72,7 @@ public class CategoryServiceDBImpl implements CategoryService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getProductsByCategory(String category) throws CategoryNotFoundException {
         Optional<Category> categoryOptional = categoryRepository.findByName(category);
         if (categoryOptional.isPresent()) {
