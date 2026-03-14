@@ -1,5 +1,6 @@
 package com.vibevault.productservice.services;
 
+import com.vibevault.productservice.events.ProductChangedEvent;
 import com.vibevault.productservice.exceptions.products.ProductNotCreatedException;
 import com.vibevault.productservice.exceptions.products.ProductNotDeletedException;
 import com.vibevault.productservice.exceptions.products.ProductNotFoundException;
@@ -9,6 +10,7 @@ import com.vibevault.productservice.models.Product;
 import com.vibevault.productservice.repositories.CategoryRepository;
 import com.vibevault.productservice.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
@@ -20,23 +22,28 @@ import java.util.UUID;
 public class ProductServiceDBImpl implements ProductService{
     private ProductRepository productRepository;
     private CategoryRepository categoryRepository;
+    private ApplicationEventPublisher eventPublisher;
     @Autowired
     public ProductServiceDBImpl(ProductRepository productRepository,
-                                CategoryRepository categoryRepository) {
+                                CategoryRepository categoryRepository,
+                                ApplicationEventPublisher eventPublisher) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.eventPublisher = eventPublisher;
     }
     @Override
     public Product createProduct(Product product) throws ProductNotCreatedException {
         Category category = getSavedCategory(product);
         product.setCategory(category);
-        return productRepository.save(product);
+        Product saved = productRepository.save(product);
+        eventPublisher.publishEvent(ProductChangedEvent.created(saved));
+        return saved;
     }
 
     @Override
     public Product updateProduct(String productId, Product product) throws ProductNotFoundException {
         Optional<Product> optionalProduct = productRepository.findById(UUID.fromString(productId));
-      
+
         if(optionalProduct.isEmpty() || optionalProduct.get().isDeleted()){
             throw new ProductNotFoundException("Product with id " + productId + " not found");
         }
@@ -72,7 +79,9 @@ public class ProductServiceDBImpl implements ProductService{
             existingProduct.setImageUrl(product.getImageUrl());
         }
 
-        return productRepository.save(existingProduct);
+        Product saved = productRepository.save(existingProduct);
+        eventPublisher.publishEvent(ProductChangedEvent.updated(saved));
+        return saved;
     }
 
     private Category getSavedCategory(Product product) {
@@ -121,6 +130,7 @@ public class ProductServiceDBImpl implements ProductService{
             throw new ProductNotDeletedException("Product with id " + productId + " not deleted due to database error. "+e.getMessage(),e);
 
         }
+        eventPublisher.publishEvent(ProductChangedEvent.deleted(product));
         return product;
     }
 
@@ -137,6 +147,8 @@ public class ProductServiceDBImpl implements ProductService{
         Category category = getSavedCategory(product);
         existingProduct.setCategory(category);
         existingProduct.setImageUrl(product.getImageUrl());
-        return productRepository.save(existingProduct);
+        Product saved = productRepository.save(existingProduct);
+        eventPublisher.publishEvent(ProductChangedEvent.updated(saved));
+        return saved;
     }
 }
