@@ -21,6 +21,27 @@ services:
     networks:
       - productservice-network
 
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.3.1
+    container_name: productservice-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - productservice-network
+
   # Product Service Application
   productservice:
     build:
@@ -35,11 +56,14 @@ services:
       # Local dev: userservice (via shared vibevault-network)
       # Production (K8s): userservice.<namespace>.svc.cluster.local
       ISSUER_URI: ${ISSUER_URI:-http://userservice:8081}
+      ELASTICSEARCH_URI: http://elasticsearch:9200
       JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     ports:
       - "8080:8080"
     depends_on:
       mysql:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:${PORT:-8080}/actuator/health"]
@@ -53,6 +77,8 @@ services:
 
 volumes:
   mysql_data:
+    driver: local
+  es_data:
     driver: local
 
 networks:
