@@ -280,17 +280,11 @@ request POST "$PRODUCTSERVICE/products" "$AUTH_HEADERS" \
 assert_status "POST /products (Cotton Summer T-Shirt)" "200" "$STATUS"
 
 # --------------------------------------------------
-section "4. Full Reindex"
+section "4. Wait for real-time indexing"
 # --------------------------------------------------
 
-request POST "$PRODUCTSERVICE/admin/index/reindex" "Authorization: Bearer $TOKEN"
-assert_status "POST /admin/index/reindex" "200" "$STATUS"
-
-if [ "$STATUS" = "200" ]; then
-    INDEXED_COUNT=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('productsIndexed', 'unknown'))" 2>/dev/null || echo "unknown")
-    echo -e "  ${CYAN}Products indexed: ${INDEXED_COUNT}${NC}"
-fi
-
+# Reindex is handled separately via the Reindex OpenSearch workflow.
+# Wait for the event-driven indexing of test products created above.
 sleep 3
 
 # --------------------------------------------------
