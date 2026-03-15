@@ -10,4 +10,8 @@ data:
   DB_URL: {{ .Values.config.dbUrl | default (printf "jdbc:mysql://%s-mysql:3306/productservice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC" (include "productservice.fullname" .)) | quote }}
   ISSUER_URI: {{ .Values.config.issuerUri | quote }}
   SPRING_PROFILES_ACTIVE: {{ .Values.config.springProfilesActive | quote }}
+  SEARCH_SERVICE_TYPE: {{ .Values.config.searchServiceType | quote }}
+  {{- if .Values.config.elasticsearchUri }}
+  ELASTICSEARCH_URI: {{ .Values.config.elasticsearchUri | quote }}
+  {{- end }}
   SPRING_FLYWAY_ENABLED: "false"

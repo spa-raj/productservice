@@ -31,6 +31,8 @@ config:
   # dbUrl: ""
   issuerUri: "http://userservice:8081"
   springProfilesActive: "default"
+  searchServiceType: "searchServiceESImpl"
+  elasticsearchUri: ""
 
 externalSecrets:
   dbSecretName: "vibevault/dev/productservice/db-credentials"

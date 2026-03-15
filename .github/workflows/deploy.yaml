@@ -76,13 +76,18 @@ jobs:
       - name: Configure kubectl
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
-      - name: Get RDS address
+      - name: Get infrastructure endpoints
         id: params
         run: |
           RDS_ADDRESS=$(aws rds describe-db-instances \
             --db-instance-identifier ${{ env.EKS_CLUSTER_NAME }}-mysql \
             --query 'DBInstances[0].Endpoint.Address' --output text)
           echo "rds_address=${RDS_ADDRESS}" >> "$GITHUB_OUTPUT"
+
+          OPENSEARCH_ENDPOINT=$(aws opensearch describe-domain \
+            --domain-name ${{ env.EKS_CLUSTER_NAME }} \
+            --query 'DomainStatus.Endpoint' --output text)
+          echo "opensearch_endpoint=${OPENSEARCH_ENDPOINT}" >> "$GITHUB_OUTPUT"
 
       - name: Deploy with Helm
         run: |
@@ -91,6 +96,7 @@ jobs:
             --set image.repository=${{ needs.build-and-push.outputs.image_repo }} \
             --set image.tag=${{ needs.build-and-push.outputs.image_tag }} \
             --set config.dbUrl="jdbc:mysql://${{ steps.params.outputs.rds_address }}:3306/productservice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC" \
+            --set config.elasticsearchUri="https://${{ steps.params.outputs.opensearch_endpoint }}" \
             --wait --timeout 300s
 
       - name: Verify deployment
