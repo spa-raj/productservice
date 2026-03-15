@@ -18,6 +18,8 @@ public class ProductIndexingEventListener {
     @EventListener
     public void handleProductChanged(ProductChangedEvent event) {
         try {
+            // DELETED re-indexes with deleted=true (soft-delete) rather than removing from index.
+            // Search queries filter by deleted=false, and MySQL rehydration also excludes soft-deleted products.
             switch (event.getActionType()) {
                 case CREATED, UPDATED, DELETED ->
                         productIndexingService.indexProduct(event.getProduct());
