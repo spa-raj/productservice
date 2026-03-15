@@ -156,7 +156,7 @@ public class SearchServiceESImpl implements SearchService {
         }
 
         Map<UUID, Product> productMap = new HashMap<>();
-        productRepository.findAllById(productIds)
+        productRepository.findAllByIdWithCategory(productIds)
                 .forEach(p -> productMap.put(p.getId(), p));
 
         return productIds.stream()
