@@ -3,6 +3,8 @@ package com.vibevault.productservice.seed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ProductDataSeeder implements CommandLineRunner {
 
     private final JdbcTemplate jdbcTemplate;
+    private final ApplicationContext applicationContext;
 
     private static final int TARGET_PRODUCTS = 2_000_000;
     private static final int BATCH_SIZE = 10_000;
@@ -84,20 +87,24 @@ public class ProductDataSeeder implements CommandLineRunner {
     public void run(String... args) {
         log.info("=== Product Data Seeder Started ===");
 
-        Long productCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM products", Long.class);
-        if (productCount != null && productCount >= TARGET_PRODUCTS) {
-            log.info("Products table already has {} rows, skipping seed.", productCount);
-            return;
+        try {
+            Long productCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM products", Long.class);
+            if (productCount != null && productCount >= TARGET_PRODUCTS) {
+                log.info("Products table already has {} rows, skipping seed.", productCount);
+                return;
+            }
+
+            long start = System.currentTimeMillis();
+
+            List<byte[]> categoryIds = seedCategories();
+            seedProducts(categoryIds);
+            updateCategoryCounts();
+
+            long elapsed = (System.currentTimeMillis() - start) / 1000;
+            log.info("=== Product Data Seeder Completed in {} seconds ===", elapsed);
+        } finally {
+            SpringApplication.exit(applicationContext, () -> 0);
         }
-
-        long start = System.currentTimeMillis();
-
-        List<byte[]> categoryIds = seedCategories();
-        seedProducts(categoryIds);
-        updateCategoryCounts();
-
-        long elapsed = (System.currentTimeMillis() - start) / 1000;
-        log.info("=== Product Data Seeder Completed in {} seconds ===", elapsed);
     }
 
     private List<byte[]> seedCategories() {
