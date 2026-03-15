@@ -41,7 +41,7 @@ public class SearchServiceESImpl implements SearchService {
                                          int page, int size, String sortBy, String sortDir)
             throws InvalidSearchParameterException {
 
-        validateSearchParameters(minPrice, maxPrice, createdAfter, createdBefore, size, sortBy);
+        validateSearchParameters(minPrice, maxPrice, createdAfter, createdBefore, page, size, sortBy);
 
         Sort.Direction direction = sortDir != null && sortDir.equalsIgnoreCase("asc")
                 ? Sort.Direction.ASC : Sort.Direction.DESC;
@@ -87,7 +87,7 @@ public class SearchServiceESImpl implements SearchService {
             boolBuilder.filter(f -> f.term(t -> t.field("categoryId").value(categoryId.toString())));
         }
         if (categoryName != null && !categoryName.isBlank()) {
-            boolBuilder.filter(f -> f.term(t -> t.field("categoryName").value(categoryName)));
+            boolBuilder.filter(f -> f.term(t -> t.field("categoryName").value(categoryName.toLowerCase())));
         }
 
         // Date range filters
@@ -119,10 +119,11 @@ public class SearchServiceESImpl implements SearchService {
                     .forEach(p -> productMap.put(p.getId(), p));
         }
 
-        // Preserve ES ordering
+        // Preserve ES ordering, exclude soft-deleted products (guards against stale ES index)
         List<Product> products = productIds.stream()
                 .map(productMap::get)
                 .filter(Objects::nonNull)
+                .filter(p -> !p.isDeleted())
                 .toList();
 
         long totalHits = searchHits.getTotalHits();
@@ -161,12 +162,19 @@ public class SearchServiceESImpl implements SearchService {
         return productIds.stream()
                 .map(productMap::get)
                 .filter(Objects::nonNull)
+                .filter(p -> !p.isDeleted())
                 .toList();
     }
 
     private void validateSearchParameters(Double minPrice, Double maxPrice,
                                           Date createdAfter, Date createdBefore,
-                                          int size, String sortBy) throws InvalidSearchParameterException {
+                                          int page, int size, String sortBy) throws InvalidSearchParameterException {
+        if (page < 0) {
+            throw new InvalidSearchParameterException("page cannot be negative");
+        }
+        if (size < 1) {
+            throw new InvalidSearchParameterException("size must be at least 1");
+        }
         if (minPrice != null && minPrice < 0) {
             throw new InvalidSearchParameterException("minPrice cannot be negative");
         }

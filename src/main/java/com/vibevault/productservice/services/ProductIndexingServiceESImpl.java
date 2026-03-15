@@ -38,6 +38,8 @@ public class ProductIndexingServiceESImpl implements ProductIndexingService {
         log.debug("Deleted product from index: {}", productId);
     }
 
+    // TODO: Forcing refresh on every write is expensive at scale. This will be replaced
+    // by Kafka-based indexing with periodic bulk refresh when Kafka is integrated.
     private void refreshIndex() {
         IndexOperations indexOps = elasticsearchOperations.indexOps(ProductDocument.class);
         indexOps.refresh();

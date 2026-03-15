@@ -77,7 +77,7 @@ public class ProductDocument {
 
         if (product.getCategory() != null) {
             builder.categoryId(product.getCategory().getId().toString());
-            builder.categoryName(product.getCategory().getName());
+            builder.categoryName(product.getCategory().getName().toLowerCase());
         }
 
         return builder.build();
