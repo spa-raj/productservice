@@ -12,6 +12,7 @@ import com.vibevault.productservice.repositories.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 
 import java.util.*;
@@ -25,6 +26,8 @@ class ProductServiceDBImplTest {
     private ProductRepository productRepository;
     @Mock
     private CategoryRepository categoryRepository;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private ProductServiceDBImpl productService;
