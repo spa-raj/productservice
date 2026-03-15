@@ -51,10 +51,10 @@ public class ProductDocument {
     @Field(type = FieldType.Keyword)
     private String categoryName;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = {}, pattern = "uuuu-MM-dd'T'HH:mm:ss.SSSXXX||epoch_millis")
     private Date createdAt;
 
-    @Field(type = FieldType.Date)
+    @Field(type = FieldType.Date, format = {}, pattern = "uuuu-MM-dd'T'HH:mm:ss.SSSXXX||epoch_millis")
     private Date lastModifiedAt;
 
     @Field(type = FieldType.Boolean)
