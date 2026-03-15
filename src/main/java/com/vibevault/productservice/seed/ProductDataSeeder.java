@@ -87,6 +87,7 @@ public class ProductDataSeeder implements CommandLineRunner {
     public void run(String... args) {
         log.info("=== Product Data Seeder Started ===");
 
+        int[] exitCode = {0};
         try {
             Long productCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM products", Long.class);
             if (productCount != null && productCount >= TARGET_PRODUCTS) {
@@ -102,8 +103,12 @@ public class ProductDataSeeder implements CommandLineRunner {
 
             long elapsed = (System.currentTimeMillis() - start) / 1000;
             log.info("=== Product Data Seeder Completed in {} seconds ===", elapsed);
+        } catch (Exception e) {
+            log.error("=== Product Data Seeder Failed ===", e);
+            exitCode[0] = 1;
         } finally {
-            SpringApplication.exit(applicationContext, () -> 0);
+            int code = SpringApplication.exit(applicationContext, () -> exitCode[0]);
+            System.exit(code);
         }
     }
 
