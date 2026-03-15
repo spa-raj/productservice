@@ -1,0 +1,64 @@
+name: Test Elasticsearch (OpenSearch)
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Deploy"]
+    types: [completed]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  EKS_CLUSTER_NAME: vibevault-dev
+  NAMESPACE: vibevault
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  test-elasticsearch:
+    name: Run ES Integration Tests
+    runs-on: ubuntu-latest
+    environment: dev
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubectl
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: Port-forward services
+        run: |
+          kubectl port-forward svc/userservice 8081:80 -n ${{ env.NAMESPACE }} &
+          kubectl port-forward svc/productservice 8080:80 -n ${{ env.NAMESPACE }} &
+          # Wait for port-forwards to establish
+          for i in $(seq 1 15); do
+            if curl -s -o /dev/null http://localhost:8081/actuator/health && \
+               curl -s -o /dev/null http://localhost:8080/actuator/health; then
+              echo "Port-forwards established"
+              break
+            fi
+            echo "Waiting for port-forwards... ($i/15)"
+            sleep 2
+          done
+
+      - name: Run Elasticsearch integration tests
+        env:
+          NAMESPACE: ${{ env.NAMESPACE }}
+        run: |
+          chmod +x scripts/elasticsearch/test-elasticsearch-k8s.sh
+          scripts/elasticsearch/test-elasticsearch-k8s.sh
+
+      - name: Cleanup port-forwards
+        if: always()
+        run: |
+          kill %1 %2 2>/dev/null || true
