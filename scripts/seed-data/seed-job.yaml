@@ -30,7 +30,7 @@ spec:
                 *\?*) export DB_URL="${DB_URL}&rewriteBatchedStatements=true" ;;
                 *)    export DB_URL="${DB_URL}?rewriteBatchedStatements=true" ;;
               esac
-              java $JAVA_OPTS -jar app.jar --spring.profiles.active=seed
+              java $JAVA_OPTS -jar app.jar --spring.profiles.active=seed --spring.main.web-application-type=none
           envFrom:
             - configMapRef:
                 name: productservice-config
