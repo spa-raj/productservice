@@ -39,7 +39,10 @@ jobs:
       - name: Port-forward services
         run: |
           kubectl port-forward svc/userservice 8081:80 -n ${{ env.NAMESPACE }} &
-          kubectl port-forward svc/productservice 8080:80 -n ${{ env.NAMESPACE }} &
+          # Target a specific pod to avoid requests splitting across replicas
+          PRODUCT_POD=$(kubectl get pods -n ${{ env.NAMESPACE }} -l app=productservice -o jsonpath='{.items[0].metadata.name}')
+          echo "Port-forwarding to pod: ${PRODUCT_POD}"
+          kubectl port-forward "pod/${PRODUCT_POD}" 8080:8080 -n ${{ env.NAMESPACE }} &
           # Wait for port-forwards to establish
           for i in $(seq 1 15); do
             if curl -s -o /dev/null http://localhost:8081/actuator/health && \

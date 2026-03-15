@@ -66,7 +66,7 @@ public class ProductIndexingServiceESImpl implements ProductIndexingService {
 
         Page<Product> productPage;
         do {
-            productPage = productRepository.findAll(PageRequest.of(page, BATCH_SIZE));
+            productPage = productRepository.findAllWithCategory(PageRequest.of(page, BATCH_SIZE));
 
             List<IndexQuery> indexQueries = productPage.getContent().stream()
                     .map(ProductDocument::fromProduct)
