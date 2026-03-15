@@ -288,60 +288,68 @@ section "4. Wait for real-time indexing"
 sleep 3
 
 # --------------------------------------------------
-section "5. Full-Text Search"
+section "5. Full-Text Search (scoped to test products)"
 # --------------------------------------------------
 
-request GET "$PRODUCTSERVICE/search/products?query=leather+wallet&page=0&size=10"
-assert_status "Search: 'leather wallet'" "200" "$STATUS"
-assert_body_contains "Search results contain wallet" "wallet" "$BODY"
+# Search by product name (uses timestamp to scope to our test products)
+request GET "$PRODUCTSERVICE/search/products?query=Leather+Wallet+${TIMESTAMP}&page=0&size=10"
+assert_status "Search: 'Leather Wallet ${TIMESTAMP}'" "200" "$STATUS"
+assert_body_contains "Search results contain wallet" "Wallet" "$BODY"
 
+# Search by description content (ES-only — MySQL LIKE can't search CLOB)
 request GET "$PRODUCTSERVICE/search/products?query=RFID+blocking&page=0&size=10"
 assert_status "Search: 'RFID blocking' (description search)" "200" "$STATUS"
 assert_body_contains "Description search finds RFID product" "RFID" "$BODY"
 
-request GET "$PRODUCTSERVICE/search/products?query=noise+cancelling&page=0&size=10"
+request GET "$PRODUCTSERVICE/search/products?query=noise+cancelling+${TIMESTAMP}&page=0&size=10"
 assert_status "Search: 'noise cancelling' (description)" "200" "$STATUS"
-assert_body_contains "Description search finds headphones" "headphones" "$BODY"
+assert_body_contains "Description search finds headphones" "Headphones" "$BODY"
 
 # --------------------------------------------------
-section "6. Fuzzy Search (Typo Tolerance)"
+section "6. Fuzzy Search (Typo Tolerance, scoped to test products)"
 # --------------------------------------------------
 
-request GET "$PRODUCTSERVICE/search/products?query=lether+walet&page=0&size=10"
-assert_status "Fuzzy search: 'lether walet'" "200" "$STATUS"
-assert_body_contains "Fuzzy search finds wallet despite typos" "wallet" "$BODY"
+# Misspelled: "Lether Walet" instead of "Leather Wallet"
+request GET "$PRODUCTSERVICE/search/products?query=Lether+Walet+${TIMESTAMP}&page=0&size=10"
+assert_status "Fuzzy search: 'Lether Walet'" "200" "$STATUS"
+assert_body_contains "Fuzzy search finds wallet despite typos" "Wallet" "$BODY"
 
-request GET "$PRODUCTSERVICE/search/products?query=headhpones&page=0&size=10"
-assert_status "Fuzzy search: 'headhpones'" "200" "$STATUS"
-assert_body_contains "Fuzzy search finds headphones despite typo" "headphones" "$BODY"
+# Misspelled: "Headhpones" instead of "Headphones"
+request GET "$PRODUCTSERVICE/search/products?query=Bluetoth+Headhpones+${TIMESTAMP}&page=0&size=10"
+assert_status "Fuzzy search: 'Bluetoth Headhpones'" "200" "$STATUS"
+assert_body_contains "Fuzzy search finds headphones despite typo" "Headphones" "$BODY"
 
 # --------------------------------------------------
-section "7. Filtered Search"
+section "7. Filtered Search (scoped to test products)"
 # --------------------------------------------------
 
-request GET "$PRODUCTSERVICE/search/products?query=&minPrice=1000&maxPrice=5000&page=0&size=10"
+# Price range — our test wallet is 1499.99, headphones 3999.00
+request GET "$PRODUCTSERVICE/search/products?query=${TIMESTAMP}&minPrice=1000&maxPrice=5000&page=0&size=10"
 assert_status "Search: price range 1000-5000" "200" "$STATUS"
 
-request GET "$PRODUCTSERVICE/search/products?query=&currency=INR&page=0&size=10"
+# Currency filter
+request GET "$PRODUCTSERVICE/search/products?query=${TIMESTAMP}&currency=INR&page=0&size=10"
 assert_status "Search: currency=INR" "200" "$STATUS"
 
-request GET "$PRODUCTSERVICE/search/products?query=&categoryName=Electronics&page=0&size=10"
+# Category filter
+request GET "$PRODUCTSERVICE/search/products?query=${TIMESTAMP}&categoryName=Electronics&page=0&size=10"
 assert_status "Search: categoryName=Electronics" "200" "$STATUS"
 assert_body_contains "Electronics filter returns electronics" "Electronics" "$BODY"
 
-request GET "$PRODUCTSERVICE/search/products?query=wireless&categoryName=Electronics&minPrice=2000&page=0&size=10"
+# Combined: query + category + price
+request GET "$PRODUCTSERVICE/search/products?query=Wireless+${TIMESTAMP}&categoryName=Electronics&minPrice=2000&page=0&size=10"
 assert_status "Search: query + category + price combined" "200" "$STATUS"
 
 # --------------------------------------------------
-section "8. Suggestions (Typeahead)"
+section "8. Suggestions (Typeahead, scoped to test products)"
 # --------------------------------------------------
 
-request GET "$PRODUCTSERVICE/search/products/suggest?prefix=Prem&limit=5"
-assert_status "Suggest: prefix='Prem'" "200" "$STATUS"
+request GET "$PRODUCTSERVICE/search/products/suggest?prefix=Premium+Leather+Wallet+${TIMESTAMP}&limit=5"
+assert_status "Suggest: prefix='Premium Leather Wallet ${TIMESTAMP}'" "200" "$STATUS"
 assert_body_contains "Suggestions contain Premium product" "Premium" "$BODY"
 
-request GET "$PRODUCTSERVICE/search/products/suggest?prefix=Wire&limit=5"
-assert_status "Suggest: prefix='Wire'" "200" "$STATUS"
+request GET "$PRODUCTSERVICE/search/products/suggest?prefix=Wireless+Bluetooth+Headphones+${TIMESTAMP}&limit=5"
+assert_status "Suggest: prefix='Wireless Bluetooth Headphones ${TIMESTAMP}'" "200" "$STATUS"
 assert_body_contains "Suggestions contain Wireless product" "Wireless" "$BODY"
 
 # --------------------------------------------------
@@ -417,13 +425,13 @@ fi
 section "10. Pagination & Sorting"
 # --------------------------------------------------
 
-request GET "$PRODUCTSERVICE/search/products?query=&page=0&size=2&sortBy=price&sortDir=asc"
+request GET "$PRODUCTSERVICE/search/products?query=${TIMESTAMP}&page=0&size=2&sortBy=price&sortDir=asc"
 assert_status "Search: page=0, size=2, sort=price asc" "200" "$STATUS"
 
-request GET "$PRODUCTSERVICE/search/products?query=&page=0&size=5&sortBy=name&sortDir=desc"
+request GET "$PRODUCTSERVICE/search/products?query=${TIMESTAMP}&page=0&size=5&sortBy=name&sortDir=desc"
 assert_status "Search: sort=name desc" "200" "$STATUS"
 
-request GET "$PRODUCTSERVICE/search/products?query=&page=0&size=5&sortBy=createdAt&sortDir=desc"
+request GET "$PRODUCTSERVICE/search/products?query=${TIMESTAMP}&page=0&size=5&sortBy=createdAt&sortDir=desc"
 assert_status "Search: sort=createdAt desc" "200" "$STATUS"
 
 # --------------------------------------------------
