@@ -10,7 +10,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
+import org.springframework.data.elasticsearch.core.query.IndexQuery;
+import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
+import org.springframework.data.elasticsearch.core.RefreshPolicy;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -52,25 +57,40 @@ public class ProductIndexingServiceESImpl implements ProductIndexingService {
 
         productDocumentRepository.deleteAll();
 
+        // Use a no-refresh operations instance for bulk reindex performance.
+        // OpenSearch's default 1s refresh_interval handles searchability during indexing.
+        ElasticsearchOperations bulkOps = elasticsearchOperations.withRefreshPolicy(RefreshPolicy.NONE);
+
         int page = 0;
         long totalIndexed = 0;
 
         Page<Product> productPage;
         do {
             productPage = productRepository.findAll(PageRequest.of(page, BATCH_SIZE));
-            var documents = productPage.getContent().stream()
+
+            List<IndexQuery> indexQueries = productPage.getContent().stream()
                     .map(ProductDocument::fromProduct)
+                    .map(doc -> new IndexQueryBuilder()
+                            .withId(doc.getId())
+                            .withObject(doc)
+                            .build())
                     .toList();
 
-            productDocumentRepository.saveAll(documents);
-            totalIndexed += documents.size();
+            if (!indexQueries.isEmpty()) {
+                bulkOps.bulkIndex(indexQueries, ProductDocument.class);
+            }
 
-            if (totalIndexed % 10_000 == 0 || !productPage.hasNext()) {
+            totalIndexed += indexQueries.size();
+
+            if (totalIndexed % 100_000 == 0 || !productPage.hasNext()) {
                 log.info("Reindex progress: {}/{} products", totalIndexed, productPage.getTotalElements());
             }
 
             page++;
         } while (productPage.hasNext());
+
+        // Single refresh after all batches are done
+        refreshIndex();
 
         long elapsed = (System.currentTimeMillis() - startTime) / 1000;
         log.info("Full reindex completed: {} products in {} seconds", totalIndexed, elapsed);
