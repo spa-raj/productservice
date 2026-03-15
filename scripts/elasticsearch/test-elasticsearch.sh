@@ -440,7 +440,13 @@ if [ -n "$SYNC_PRODUCT_ID" ]; then
 
     # Old name should not return results
     request GET "$PRODUCTSERVICE/search/products?query=${SYNC_PRODUCT_NAME}&page=0&size=10"
-    OLD_RESULTS=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('totalElements', 0))" 2>/dev/null || echo "0")
+    if ! echo "$BODY" | grep -q "$SYNC_PRODUCT_NAME"; then
+        echo -e "  ${GREEN}PASS${NC} Real-time indexing: old name no longer found in search"
+        PASS=$((PASS + 1))
+    else
+        echo -e "  ${RED}FAIL${NC} Real-time indexing: old name still found in search"
+        FAIL=$((FAIL + 1))
+    fi
 
     # New name should return results
     request GET "$PRODUCTSERVICE/search/products?query=${UPDATED_NAME}&page=0&size=10"
