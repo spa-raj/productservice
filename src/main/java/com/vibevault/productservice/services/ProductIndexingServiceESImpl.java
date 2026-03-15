@@ -55,7 +55,14 @@ public class ProductIndexingServiceESImpl implements ProductIndexingService {
         log.info("Starting full reindex of products to Elasticsearch...");
         long startTime = System.currentTimeMillis();
 
-        productDocumentRepository.deleteAll();
+        // Drop and recreate the index instead of _delete_by_query
+        // which times out on large datasets with small OpenSearch instances
+        IndexOperations indexOps = elasticsearchOperations.indexOps(ProductDocument.class);
+        if (indexOps.exists()) {
+            indexOps.delete();
+        }
+        indexOps.create();
+        indexOps.putMapping();
 
         // Use a no-refresh operations instance for bulk reindex performance.
         // OpenSearch's default 1s refresh_interval handles searchability during indexing.
