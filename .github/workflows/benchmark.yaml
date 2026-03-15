@@ -6,11 +6,12 @@ on:
       test_script:
         description: 'Benchmark script to run'
         required: true
-        default: 'mysql-baseline.js'
+        default: 'mysql-baseline-light.js'
         type: choice
         options:
           - mysql-baseline.js
           - mysql-baseline-light.js
+          - opensearch-baseline.js
 
 permissions:
   id-token: write
@@ -48,9 +49,16 @@ jobs:
         run: |
           kubectl rollout status deployment/productservice -n vibevault --timeout=60s
 
+      - name: Derive job name from script
+        id: job
+        run: |
+          JOB_NAME="benchmark-$(echo '${{ inputs.test_script }}' | sed 's/.js$//' | tr '.' '-')"
+          echo "name=${JOB_NAME}" >> "$GITHUB_OUTPUT"
+          echo "Job name: ${JOB_NAME}"
+
       - name: Delete previous benchmark resources
         run: |
-          kubectl delete job benchmark-mysql-baseline -n vibevault --ignore-not-found
+          kubectl delete job ${{ steps.job.outputs.name }} -n vibevault --ignore-not-found
           kubectl delete configmap k6-benchmark-script -n vibevault --ignore-not-found
 
       - name: Create ConfigMap from benchmark script
@@ -66,7 +74,7 @@ jobs:
           apiVersion: batch/v1
           kind: Job
           metadata:
-            name: benchmark-mysql-baseline
+            name: ${{ steps.job.outputs.name }}
             namespace: vibevault
             labels:
               app: productservice
@@ -113,8 +121,8 @@ jobs:
         run: |
           echo "Benchmark running (~15 minutes)..."
           while true; do
-            COMPLETE=$(kubectl get job benchmark-mysql-baseline -n vibevault -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null)
-            FAILED=$(kubectl get job benchmark-mysql-baseline -n vibevault -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null)
+            COMPLETE=$(kubectl get job ${{ steps.job.outputs.name }} -n vibevault -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null)
+            FAILED=$(kubectl get job ${{ steps.job.outputs.name }} -n vibevault -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null)
             if [ "$COMPLETE" = "True" ]; then
               echo "Benchmark completed successfully."
               break
@@ -137,7 +145,7 @@ jobs:
           echo "  Date: $(date -u +'%Y-%m-%d %H:%M UTC')"
           echo "==============================================="
           echo ""
-          kubectl logs job/benchmark-mysql-baseline -n vibevault --pod-running-timeout=10s 2>&1 | tee /tmp/benchmark-results.log
+          kubectl logs job/${{ steps.job.outputs.name }} -n vibevault --pod-running-timeout=10s 2>&1 | tee /tmp/benchmark-results.log
           echo ""
 
       - name: Upload results as artifact
