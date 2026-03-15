@@ -11,7 +11,10 @@ data:
   ISSUER_URI: {{ .Values.config.issuerUri | quote }}
   SPRING_PROFILES_ACTIVE: {{ .Values.config.springProfilesActive | quote }}
   SEARCH_SERVICE_TYPE: {{ .Values.config.searchServiceType | quote }}
-  {{- if .Values.config.elasticsearchUri }}
+  {{- if eq .Values.config.searchServiceType "searchServiceESImpl" }}
+  {{- if not .Values.config.elasticsearchUri }}
+  {{- fail "config.elasticsearchUri is required when searchServiceType is searchServiceESImpl" }}
+  {{- end }}
   ELASTICSEARCH_URI: {{ .Values.config.elasticsearchUri | quote }}
   {{- end }}
   SPRING_FLYWAY_ENABLED: "false"

@@ -86,7 +86,11 @@ jobs:
 
           OPENSEARCH_ENDPOINT=$(aws opensearch describe-domain \
             --domain-name ${{ env.EKS_CLUSTER_NAME }} \
-            --query 'DomainStatus.Endpoint' --output text)
+            --query 'DomainStatus.Endpoints.vpc' --output text)
+          if [ -z "$OPENSEARCH_ENDPOINT" ] || [ "$OPENSEARCH_ENDPOINT" = "None" ]; then
+            echo "::error::Failed to resolve OpenSearch VPC endpoint for domain ${{ env.EKS_CLUSTER_NAME }}"
+            exit 1
+          fi
           echo "opensearch_endpoint=${OPENSEARCH_ENDPOINT}" >> "$GITHUB_OUTPUT"
 
       - name: Deploy with Helm
