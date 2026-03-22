@@ -77,14 +77,17 @@ Product Service is a Spring Boot application designed to manage product and cate
      export DB_USERNAME=root                             # Database username
      export DB_PASSWORD=yourpassword                     # Database password
      export ISSUER_URI=http://localhost:8081             # OAuth2 issuer URI (your auth server)
+     export ELASTICSEARCH_URI=http://localhost:9200      # OpenSearch/Elasticsearch URI
+     export SEARCH_SERVICE_TYPE=searchServiceDBImpl      # Use searchServiceESImpl if OpenSearch is running
      ```
    - Alternatively, you can create an `.env` file or configure these in your IDE.
-   - The `productServiceType` property in `application.properties` controls which service implementation to use:
+   - The `productServiceType` property controls which product service to use:
      - `productServiceDBImpl` - Uses the database implementation (default)
      - `productServiceFakeStoreImpl` - Uses the external fake store API
-4. Run Flyway migrations:
-   ```bash
-   mvn flyway:migrate
+   - The `SEARCH_SERVICE_TYPE` property controls which search backend to use:
+     - `searchServiceDBImpl` - MySQL-based search (no OpenSearch required)
+     - `searchServiceESImpl` - OpenSearch-backed full-text search (default, requires OpenSearch running)
+4. Build and run (Flyway migrations run automatically on startup):
    ```
 5. Build and run the application:
    ```bash
@@ -107,6 +110,7 @@ Run the Product Service in containers for consistent development and deployment.
    ```
    This starts:
    - MySQL 8.0 on port 3307 (host) → 3306 (container)
+   - Elasticsearch 9.x on port 9200 (for OpenSearch-compatible search)
    - Product Service on port 8080
 
 2. **Verify the service is running:**
