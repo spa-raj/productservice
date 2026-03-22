@@ -617,6 +617,12 @@ The search functionality provides flexible product discovery with multiple filte
 - Prefix-based autocomplete suggestions
 - Event-driven indexing: MySQL → OpenSearch sync via Spring Events + @Async
 
+### Admin — OpenSearch Index Management
+
+- **POST /admin/index/reindex**
+  - Description: Triggers a full bulk reindex of all products from MySQL to OpenSearch. Requires `ADMIN` role.
+  - Response: `200 OK`
+
 ## Database Migrations
 Flyway is used for managing database schema migrations. Migration scripts are located in `src/main/resources/db/migration`.
 
