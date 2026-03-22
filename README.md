@@ -41,12 +41,12 @@ Product Service is a Spring Boot application designed to manage product and cate
 
 ## Technologies Used
 - Java 21
-- Spring Boot 4.0.1
+- Spring Boot 4.0.3
 - Spring Data JPA (Hibernate) with JPA Specifications for dynamic queries
 - Spring Security with OAuth2 Resource Server
 - Spring Boot Actuator for health checks and metrics
 - Flyway for database migrations
-- MySQL (Elasticsearch planned for search)
+- MySQL + AWS OpenSearch 2.17 (full-text search, fuzzy matching, autocomplete)
 - Docker & Docker Compose for containerization
 - Lombok
 - OWASP Encoder for XSS prevention
@@ -524,9 +524,9 @@ docker exec -it productservice-mysql mysql -u productuser -p productservice
     ```
 ### Product Search
 
-The search functionality provides flexible product discovery with multiple filter options. Currently implemented using MySQL with JPA Specifications, with Elasticsearch integration planned for enhanced full-text search capabilities.
+The search functionality provides flexible product discovery with multiple filter options. Full-text search is powered by AWS OpenSearch 2.17 (deployed in-VPC via Terraform), supporting fuzzy matching, description search, autocomplete, and filtered/sorted/paginated queries. MySQL JPA Specifications handle non-search filtered queries.
 
-> **Architecture Note:** The search feature uses a Strategy pattern (`SearchService` interface) allowing seamless switching between MySQL and Elasticsearch implementations.
+> **Architecture Note:** The search feature uses a Strategy pattern (`SearchService` interface). OpenSearch queries use the Elasticsearch 9.x Java client with header overrides for OpenSearch 2.x compatibility. Benchmarks on 2M products showed MySQL LIKE queries fail at 15 concurrent users (100% failure, ~6min/query) while OpenSearch achieves 99.3% success with 27ms median latency.
 
 - **GET /search/products**
   - Description: Search products with optional filters, pagination, and sorting.
@@ -609,12 +609,13 @@ The search functionality provides flexible product discovery with multiple filte
 - Case-insensitive text search on product name
 - Proper escaping of SQL wildcards to prevent injection
 
-#### Future Enhancement (Elasticsearch)
+#### OpenSearch Search Capabilities (Deployed)
 - Full-text search across name and description
-- Fuzzy matching and typo tolerance
-- Relevance scoring
-- Faster search performance at scale
-- Advanced autocomplete with suggestions
+- Fuzzy matching and typo tolerance (e.g., "lether walet" → "leather wallet")
+- Filtered + sorted + paginated queries (category, price range, sort by price/name)
+- Multi-field search (name + category combined)
+- Prefix-based autocomplete suggestions
+- Event-driven indexing: MySQL → OpenSearch sync via Spring Events + @Async
 
 ## Database Migrations
 Flyway is used for managing database schema migrations. Migration scripts are located in `src/main/resources/db/migration`.
